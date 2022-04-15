@@ -1,6 +1,5 @@
 local playerIdentity = {}
 local alreadyRegistered = {}
-local multichar = ESX.GetConfig().Multichar
 
 if Config.UseDeferrals then
 	AddEventHandler('playerConnecting', function(playerName, setKickReason, deferrals)
@@ -99,65 +98,99 @@ if Config.UseDeferrals then
 	end)
 
 elseif not Config.UseDeferrals then
-	if not multichar then
-		AddEventHandler('playerConnecting', function(playerName, setKickReason, deferrals)
-			deferrals.defer()
-			local playerId, identifier = source, ESX.GetIdentifier(source)
-			Wait(40)
+	AddEventHandler('playerConnecting', function(playerName, setKickReason, deferrals)
+		deferrals.defer()
+		local playerId, identifier = source, ESX.GetIdentifier(source)
+		Wait(40)
 
-			if identifier then
-			MySQL.single('SELECT firstname, lastname, dateofbirth, sex, height FROM users WHERE identifier = ?', {identifier},
-			function(result)
-				if result then
-						if result.firstname then
-							playerIdentity[identifier] = {
-								firstName = result.firstname,
-								lastName = result.lastname,
-								dateOfBirth = result.dateofbirth,
-								sex = result.sex,
-								height = result.height
-							}
+		if identifier then
+		MySQL.single('SELECT firstname, lastname, dateofbirth, sex, height FROM users WHERE identifier = ?', {identifier},
+		function(result)
+			if result then
+					if result.firstname then
+						playerIdentity[identifier] = {
+							firstName = result.firstname,
+							lastName = result.lastname,
+							dateOfBirth = result.dateofbirth,
+							sex = result.sex,
+							height = result.height
+						}
 
-							alreadyRegistered[identifier] = true
+						alreadyRegistered[identifier] = true
 
-							deferrals.done()
-						else
-							playerIdentity[identifier] = nil
-							alreadyRegistered[identifier] = false
-							deferrals.done()
-						end
+						deferrals.done()
 					else
 						playerIdentity[identifier] = nil
 						alreadyRegistered[identifier] = false
 						deferrals.done()
 					end
-				end)
-			else
-				deferrals.done(_U('no_identifier'))
-			end
-		end)
-
-		AddEventHandler('onResourceStart', function(resource)
-			if resource == GetCurrentResourceName() then
-				Wait(300)
-
-				while not ESX do
-					Wait(0)
+				else
+					playerIdentity[identifier] = nil
+					alreadyRegistered[identifier] = false
+					deferrals.done()
 				end
+			end)
+		else
+			deferrals.done(_U('no_identifier'))
+		end
+	end)
 
-				local xPlayers = ESX.GetExtendedPlayers()
-				for _, xPlayer in pairs(xPlayers) do
-					if xPlayer then	
-						checkIdentity(xPlayer)
-					end
+	AddEventHandler('onResourceStart', function(resource)
+		if resource == GetCurrentResourceName() then
+			Wait(300)
+
+			while not ESX do
+				Wait(0)
+			end
+
+			local xPlayers = ESX.GetExtendedPlayers()
+			for _, xPlayer in pairs(xPlayers) do
+				if xPlayer then	
+					checkIdentity(xPlayer)
 				end
 			end
-		end)
+		end
+	end)
 
-		RegisterNetEvent('esx:playerLoaded')
-		AddEventHandler('esx:playerLoaded', function(playerId, xPlayer)
-			local currentIdentity = playerIdentity[xPlayer.identifier]
-			if currentIdentity and alreadyRegistered[xPlayer.identifier] == true then
+	RegisterNetEvent('esx:playerLoaded')
+	AddEventHandler('esx:playerLoaded', function(playerId, xPlayer)
+		local currentIdentity = playerIdentity[xPlayer.identifier]
+		if currentIdentity and alreadyRegistered[xPlayer.identifier] == true then
+
+			xPlayer.setName(('%s %s'):format(currentIdentity.firstName, currentIdentity.lastName))
+			xPlayer.set('firstName', currentIdentity.firstName)
+			xPlayer.set('lastName', currentIdentity.lastName)
+			xPlayer.set('dateofbirth', currentIdentity.dateOfBirth)
+			xPlayer.set('sex', currentIdentity.sex)
+			xPlayer.set('height', currentIdentity.height)
+
+			if currentIdentity.saveToDatabase then
+				saveIdentityToDatabase(xPlayer.identifier, currentIdentity)
+			end
+
+			Wait(0)
+			TriggerClientEvent('esx_identity:alreadyRegistered', xPlayer.source)
+
+			playerIdentity[xPlayer.identifier] = nil
+		else
+			TriggerClientEvent('esx_identity:showRegisterIdentity', xPlayer.source)
+		end
+	end)
+
+	ESX.RegisterServerCallback('esx_identity:registerIdentity', function(source, cb, data)
+		local xPlayer = ESX.GetPlayerFromId(source)
+		
+		if xPlayer and not alreadyRegistered[xPlayer.identifier] then
+			if checkNameFormat(data.firstname) and checkNameFormat(data.lastname) and checkSexFormat(data.sex) and checkDOBFormat(data.dateofbirth) and checkHeightFormat(data.height) then
+				playerIdentity[xPlayer.identifier] = {
+					firstName = formatName(data.firstname),
+					lastName = formatName(data.lastname),
+					dateOfBirth = data.dateofbirth,
+					sex = data.sex,
+					height = data.height
+				}
+
+				local currentIdentity = playerIdentity[xPlayer.identifier]
 
 				xPlayer.setName(('%s %s'):format(currentIdentity.firstName, currentIdentity.lastName))
 				xPlayer.set('firstName', currentIdentity.firstName)
@@ -166,59 +199,16 @@ elseif not Config.UseDeferrals then
 				xPlayer.set('sex', currentIdentity.sex)
 				xPlayer.set('height', currentIdentity.height)
 
-				if currentIdentity.saveToDatabase then
-					saveIdentityToDatabase(xPlayer.identifier, currentIdentity)
-				end
-
-				Wait(0)
-				TriggerClientEvent('esx_identity:alreadyRegistered', xPlayer.source)
-
-				playerIdentity[xPlayer.identifier] = nil
-			else
-				TriggerClientEvent('esx_identity:showRegisterIdentity', xPlayer.source)
-			end
-		end)
-	end
-
-	ESX.RegisterServerCallback('esx_identity:registerIdentity', function(source, cb, data)
-		local xPlayer = ESX.GetPlayerFromId(source)
+				saveIdentityToDatabase(xPlayer.identifier, currentIdentity)
+				alreadyRegistered[xPlayer.identifier] = true
 		
-		if xPlayer then
-			if not alreadyRegistered[xPlayer.identifier] then
-				if checkNameFormat(data.firstname) and checkNameFormat(data.lastname) and checkSexFormat(data.sex) and checkDOBFormat(data.dateofbirth) and checkHeightFormat(data.height) then
-					playerIdentity[xPlayer.identifier] = {
-						firstName = formatName(data.firstname),
-						lastName = formatName(data.lastname),
-						dateOfBirth = data.dateofbirth,
-						sex = data.sex,
-						height = data.height
-					}
-
-					local currentIdentity = playerIdentity[xPlayer.identifier]
-
-					xPlayer.setName(('%s %s'):format(currentIdentity.firstName, currentIdentity.lastName))
-					xPlayer.set('firstName', currentIdentity.firstName)
-					xPlayer.set('lastName', currentIdentity.lastName)
-					xPlayer.set('dateofbirth', currentIdentity.dateOfBirth)
-					xPlayer.set('sex', currentIdentity.sex)
-					xPlayer.set('height', currentIdentity.height)
-
-					saveIdentityToDatabase(xPlayer.identifier, currentIdentity)
-					alreadyRegistered[xPlayer.identifier] = true
-			
-					playerIdentity[xPlayer.identifier] = nil
-					cb(true)
-				else
-					cb(false)
-				end
+				playerIdentity[xPlayer.identifier] = nil
+				cb(true)
 			else
 				cb(false)
 			end
 		else
-			if multichar and checkNameFormat(data.firstname) and checkNameFormat(data.lastname) and checkSexFormat(data.sex) and checkDOBFormat(data.dateofbirth) and checkHeightFormat(data.height) then
-				TriggerEvent('esx_identity:completedRegistration', source, data)
-				cb(true)
-			end
+			cb(false)
 		end
 	end)
 

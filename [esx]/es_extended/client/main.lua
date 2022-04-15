@@ -1,7 +1,7 @@
 local pickups = {}
 
 CreateThread(function()
-	while not Config.Multichar do
+	while true do
 		Wait(0)
 		if NetworkIsPlayerActive(PlayerId()) then
 			exports.spawnmanager:setAutoSpawn(false)
@@ -20,33 +20,30 @@ AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
 
 	FreezeEntityPosition(PlayerPedId(), true)
 
-	if Config.Multichar then
-		Wait(3000)
-	else
-		exports.spawnmanager:spawnPlayer({
-			x = ESX.PlayerData.coords.x,
-			y = ESX.PlayerData.coords.y,
-			z = ESX.PlayerData.coords.z + 0.25,
-			heading = ESX.PlayerData.coords.heading,
-			model = GetHashKey("mp_m_freemode_01"),
-			skipFade = false
-		}, function()
-			TriggerServerEvent('esx:onPlayerSpawn')
-			TriggerEvent('esx:onPlayerSpawn')
-			TriggerEvent('esx:restoreLoadout')
+	exports.spawnmanager:spawnPlayer({
+		x = ESX.PlayerData.coords.x,
+		y = ESX.PlayerData.coords.y,
+		z = ESX.PlayerData.coords.z + 0.25,
+		heading = ESX.PlayerData.coords.heading,
+		model = GetHashKey("mp_m_freemode_01"),
+		skipFade = false
+	}, function()
+		TriggerServerEvent('esx:onPlayerSpawn')
+		TriggerEvent('esx:onPlayerSpawn')
+		TriggerEvent('esx:restoreLoadout')
+		TriggerEvent('playerSpawned') -- compatibility with old scripts
 
-			if isNew then
-				TriggerEvent('skinchanger:loadDefaultModel', skin.sex == 0)
-			elseif skin then
-				TriggerEvent('skinchanger:loadSkin', skin)
-			end
+		if isNew then
+			TriggerEvent('skinchanger:loadDefaultModel', skin.sex == 0)
+		elseif skin then
+			TriggerEvent('skinchanger:loadSkin', skin)
+		end
 
-			TriggerEvent('esx:loadingScreenOff')
-			ShutdownLoadingScreen()
-			ShutdownLoadingScreenNui()
-			FreezeEntityPosition(ESX.PlayerData.ped, false)
-		end)
-	end
+		TriggerEvent('esx:loadingScreenOff')
+		ShutdownLoadingScreen()
+		ShutdownLoadingScreenNui()
+		FreezeEntityPosition(ESX.PlayerData.ped, false)
+	end)
 
 	while ESX.PlayerData.ped == nil do Wait(20) end
 	-- enable PVP

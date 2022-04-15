@@ -22,9 +22,8 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 	self.variables = {}
 	self.weight = weight
 	self.maxWeight = Config.MaxWeight
-	if Config.Multichar then self.license = 'license'.. identifier:sub(identifier:find(':'), identifier:len()) else self.license = 'license:'..identifier end
 
-	ExecuteCommand(('add_principal identifier.%s group.%s'):format(self.license, self.group))
+	ExecuteCommand(('add_principal identifier.%s group.%s'):format(self.identifier, self.group))
 
 	function self.triggerEvent(eventName, ...)
 		TriggerClientEvent(eventName, self.source, ...)
@@ -75,9 +74,9 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 	end
 
 	function self.setGroup(newGroup)
-		ExecuteCommand(('remove_principal identifier.%s group.%s'):format(self.license, self.group))
+		ExecuteCommand(('remove_principal identifier.%s group.%s'):format(self.identifier, self.group))
 		self.group = newGroup
-		ExecuteCommand(('add_principal identifier.%s group.%s'):format(self.license, self.group))
+		ExecuteCommand(('add_principal identifier.%s group.%s'):format(self.identifier, self.group))
 	end
 
 	function self.getGroup()

@@ -4,39 +4,20 @@ SetGameType('ESX Legacy')
 local newPlayer = 'INSERT INTO `users` SET `accounts` = ?, `identifier` = ?, `group` = ?'
 local loadPlayer = 'SELECT `accounts`, `job`, `job_grade`, `group`, `position`, `inventory`, `skin`, `loadout`'
 
-if Config.Multichar then
-	newPlayer = newPlayer..', `firstname` = ?, `lastname` = ?, `dateofbirth` = ?, `sex` = ?, `height` = ?'
-end
-
-if Config.Multichar or Config.Identity then
+if Config.Identity then
 	loadPlayer = loadPlayer..', `firstname`, `lastname`, `dateofbirth`, `sex`, `height`'
 end
 
 loadPlayer = loadPlayer..' FROM `users` WHERE identifier = ?'
 
-if Config.Multichar then
-	AddEventHandler('esx:onPlayerJoined', function(src, char, data)
-		while not next(ESX.Jobs) do Wait(50) end
+RegisterNetEvent('esx:onPlayerJoined')
+AddEventHandler('esx:onPlayerJoined', function()
+	while not next(ESX.Jobs) do Wait(50) end
 
-		if not ESX.Players[src] then
-			local identifier = char..':'..ESX.GetIdentifier(src)
-			if data then
-				createESXPlayer(identifier, src, data)
-			else
-				loadESXPlayer(identifier, src, false)
-			end
-		end
-	end)
-else
-	RegisterNetEvent('esx:onPlayerJoined')
-	AddEventHandler('esx:onPlayerJoined', function()
-		while not next(ESX.Jobs) do Wait(50) end
-
-		if not ESX.Players[source] then
-			onPlayerJoined(source)
-		end
-	end)
-end
+	if not ESX.Players[source] then
+		onPlayerJoined(source)
+	end
+end)
 
 function onPlayerJoined(playerId)
 	local identifier = ESX.GetIdentifier(playerId)
@@ -70,43 +51,26 @@ function createESXPlayer(identifier, playerId, data)
 		defaultGroup = "user"
 	end
 
-	if not Config.Multichar then
-		MySQL.prepare(newPlayer, { json.encode(accounts), identifier, defaultGroup }, function()
-			loadESXPlayer(identifier, playerId, true)
-		end)
-	else
-		MySQL.prepare(newPlayer, {
-			json.encode(accounts),
-			identifier,
-			defaultGroup,
-			data.firstname,
-			data.lastname,
-			data.dateofbirth,
-			data.sex,
-			data.height
-		}, function()
-			loadESXPlayer(identifier, playerId, true)
-		end)
-	end
-end
-
-if not Config.Multichar then
-	AddEventHandler('playerConnecting', function(name, setCallback, deferrals)
-		deferrals.defer()
-		local playerId = source
-		local identifier = ESX.GetIdentifier(playerId)
-
-		if identifier then
-			if ESX.GetPlayerFromIdentifier(identifier) then
-				deferrals.done(('There was an error loading your character!\nError code: identifier-active\n\nThis error is caused by a player on this server who has the same identifier as you have. Make sure you are not playing on the same account.\n\nYour identifier: %s'):format(identifier))
-			else
-				deferrals.done()
-			end
-		else
-			deferrals.done('There was an error loading your character!\nError code: identifier-missing\n\nThe cause of this error is not known, your identifier could not be found. Please come back later or report this problem to the server administration team.')
-		end
+	MySQL.prepare(newPlayer, { json.encode(accounts), identifier, defaultGroup }, function()
+		loadESXPlayer(identifier, playerId, true)
 	end)
 end
+
+AddEventHandler('playerConnecting', function(name, setCallback, deferrals)
+	deferrals.defer()
+	local playerId = source
+	local identifier = ESX.GetIdentifier(playerId)
+
+	if identifier then
+		if ESX.GetPlayerFromIdentifier(identifier) then
+			deferrals.done(('There was an error loading your character!\nError code: identifier-active\n\nThis error is caused by a player on this server who has the same identifier as you have. Make sure you are not playing on the same account.\n\nYour identifier: %s'):format(identifier))
+		else
+			deferrals.done()
+		end
+	else
+		deferrals.done('There was an error loading your character!\nError code: identifier-missing\n\nThe cause of this error is not known, your identifier could not be found. Please come back later or report this problem to the server administration team.')
+	end
+end)
 
 function loadESXPlayer(identifier, playerId, isNew)
 	local userData = {
@@ -322,20 +286,6 @@ AddEventHandler('playerDropped', function(reason)
 		end)
 	end
 end)
-
-if Config.Multichar then
-	AddEventHandler('esx:playerLogout', function(playerId)
-		local xPlayer = ESX.GetPlayerFromId(playerId)
-		if xPlayer then
-			TriggerEvent('esx:playerDropped', playerId)
-
-			Core.SavePlayer(xPlayer, function()
-				ESX.Players[playerId] = nil
-			end)
-		end
-		TriggerClientEvent("esx:onPlayerLogout", playerId)
-	end)
-end
 
 RegisterNetEvent('esx:updateCoords')
 AddEventHandler('esx:updateCoords', function(coords)
