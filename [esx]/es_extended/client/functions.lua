@@ -92,6 +92,14 @@ function ESX.ShowNotification(message, type, length)
     end
 end
 
+function ESX.TextUI(message, type)
+	exports["esx_textui"]:TextUI(message, type)
+end
+
+function ESX.HideUI()
+	exports["esx_textui"]:HideUI()
+end
+
 
 function ESX.ShowAdvancedNotification(sender, subject, msg, textureDict, iconType, flash, saveToBrief, hudColorIndex)
 	if saveToBrief == nil then saveToBrief = true end
@@ -1123,8 +1131,8 @@ AddEventHandler('esx:serverCallback', function(requestId, ...)
 end)
 
 RegisterNetEvent('esx:showNotification')
-AddEventHandler('esx:showNotification', function(msg)
-	ESX.ShowNotification(msg)
+AddEventHandler('esx:showNotification', function(msg, type, length)
+	ESX.ShowNotification(msg, type, length)
 end)
 
 RegisterNetEvent('esx:showAdvancedNotification')
