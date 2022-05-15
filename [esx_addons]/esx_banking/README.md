@@ -1,32 +1,25 @@
-# esx_atm
+# esx_banking
 
 ## Download & Installation
 
-### Using [fvm](https://github.com/qlaffont/fvm-installer)
-```
-fvm install --save --folder=esx esx-org/esx_atm
-```
-
-### Using Git
-```
-cd resources
-git clone https://github.com/ESX-Org/esx_atm [esx]/esx_atm
-```
-
-### Manually
-- Download https://github.com/ESX-Org/esx_atm/archive/master.zip
-- Put it in the `[esx]` directory
+- Download https://github.com/esx-framework/esx-legacy/tree/main/%5Besx_addons%5D/esx_banking
+- Put it in the `[esx-addons]` directory
 
 ## Installation
 - Add this to your `server.cfg`:
 
 ```
-start esx_atm
+ensure esx_banking
+```
+
+# Database
+```
+Run the banking.sql into your database. Done.
 ```
 
 # Legal
 ### License
-esx_atm - atm script for ESX
+esx_banking - banking script for ESX
 
 Copyright (C) 2015-2022 Jérémie N'gadi
 

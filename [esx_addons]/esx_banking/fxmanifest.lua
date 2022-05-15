@@ -2,7 +2,7 @@ fx_version 'adamant'
 
 game 'gta5'
 
-description 'ESX Atm'
+description 'ESX banking'
 
 version '1.7.0'
 
@@ -14,6 +14,7 @@ shared_scripts {
 }
 
 server_scripts {
+	'@oxmysql/lib/MySQL.lua',
 	'server/main.lua'
 }
 
