@@ -595,7 +595,8 @@ ESX.RegisterServerCallback('esx:getPlayerData', function(source, cb)
         inventory = xPlayer.getInventory(),
         job = xPlayer.getJob(),
         loadout = xPlayer.getLoadout(),
-        money = xPlayer.getMoney()
+        money = xPlayer.getMoney(),
+		position = xPlayer.getCoords(true)
     })
 end)
 
@@ -612,7 +613,8 @@ ESX.RegisterServerCallback('esx:getOtherPlayerData', function(source, cb, target
         inventory = xPlayer.getInventory(),
         job = xPlayer.getJob(),
         loadout = xPlayer.getLoadout(),
-        money = xPlayer.getMoney()
+        money = xPlayer.getMoney(),
+		position = xPlayer.getCoords(true)
     })
 end)
 
