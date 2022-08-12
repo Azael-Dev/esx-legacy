@@ -65,7 +65,7 @@ function PropertiesRefresh()
       end
     end
     local Players = ESX.GetExtendedPlayers()
-    Log("ESX-Property Beta Loaded", 11141375, {{name = "Property Count", value = #Properties, inline = true},
+    Log("ESX-Property Loaded", 11141375, {{name = "Property Count", value = #Properties, inline = true},
                                                {name = "OX Inventory", value = Config.OxInventory and "Enabled" or "Disabled", inline = true}}, 1)
     for _, xPlayer in pairs(Players) do
       TriggerClientEvent("esx_property:syncProperties", xPlayer.source, Properties, xPlayer.get("lastProperty"))
@@ -100,6 +100,16 @@ CreateThread(function()
   MySQL.query("ALTER TABLE `users` ADD COLUMN IF NOT EXISTS `last_property` LONGTEXT NULL", function(result)
     if result then
       print("[^2INFO^7] Adding ^5last_property^7 column to users table")
+    end
+  end)
+  MySQL.insert("INSERT IGNORE INTO `datastore` (name, label, shared) VALUES ('property', 'Property' , 1)", function(result)
+    if result then
+      print("[^2INFO^7] Adding ^5Property^7 into ^5datastore^7 table")
+    end
+  end)
+  MySQL.insert("INSERT IGNORE INTO `datastore_data` (name, owner, data) VALUES ('property', NULL, '{}')", function(result)
+    if result then
+      print("[^2INFO^7] Adding ^5Property^7 into ^5datastore_data^7 table")
     end
   end)
   if PM.Enabled then
@@ -341,7 +351,7 @@ ESX.RegisterServerCallback("esx_property:SetGaragePos", function(source, cb, Pro
     local PlayerPed = GetPlayerPed(source)
     local PlayerPos = GetEntityCoords(PlayerPed)
     local Property = Properties[PropertyId]
-    local Original = vector3(Properties[PropertyId].garage.pos.x, Properties[PropertyId].garage.pos.y, Properties[PropertyId].garage.pos.z)
+    local Original = Properties[PropertyId].garage.pos and Properties[PropertyId].garage.pos.x .. ", " .. Properties[PropertyId].garage.pos.y .. ", " .. Properties[PropertyId].garage.pos.z or "N/A"
     Properties[PropertyId].garage.pos = PlayerPos
     Properties[PropertyId].garage.Heading = heading
     TriggerClientEvent("esx_property:syncProperties", -1, Properties)
@@ -739,15 +749,15 @@ ESX.RegisterServerCallback('esx_property:GetNearbyPlayers', function(source, cb,
   local Property = Properties[property]
   local Players = {}
   local xPlayer = ESX.GetPlayerFromId(source)
-  ESX.OneSync.GetPlayersInArea(vector3(Property.Entrance.x, Property.Entrance.y, Property.Entrance.z), 5.0, function(NearbyPlayers)
+  local NearbyPlayers = ESX.OneSync.GetPlayersInArea(vector3(Property.Entrance.x, Property.Entrance.y, Property.Entrance.z), 5.0)
+  Wait(100)
     for k, v in pairs(NearbyPlayers) do
       local xTarget = ESX.GetPlayerFromId(v.id)
-      ---if xPlayer.identifier ~= xTarget.identifier then
-      Players[#Players + 1] = {name = xTarget.getName(), source = xTarget.source}
-      -- end
+      if xPlayer.identifier ~= xTarget.identifier then
+        Players[#Players + 1] = {name = xTarget.getName(), source = xTarget.source}
+      end
     end
     cb(Players)
-  end)
 end)
 
 ESX.RegisterServerCallback('esx_property:GetPlayersWithKeys', function(source, cb, property)
