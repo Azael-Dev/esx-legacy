@@ -200,7 +200,7 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 			local account, index = self.getAccount(accountName)
 			if account then
 				money = account.round and ESX.Math.Round(money) or money
-				self.accounts[index].money = money
+				self.accounts[index].money += money
 
 				self.triggerEvent('esx:setAccountMoney', account)
 			else 
@@ -221,7 +221,7 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 
 			if account then
 				money = account.round and ESX.Math.Round(money) or money
-				self.accounts[index].money = money
+				self.accounts[index].money -= money
 
 				self.triggerEvent('esx:setAccountMoney', account)
 			else 
