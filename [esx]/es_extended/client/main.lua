@@ -15,10 +15,7 @@ end)
 
 RegisterNetEvent('esx:playerLoaded')
 AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
-	ESX.PlayerLoaded = true
 	ESX.PlayerData = xPlayer
-	ESX.PlayerData.ped = PlayerPedId()
-	FreezeEntityPosition(ESX.PlayerData.ped, true)
 
 	exports.spawnmanager:spawnPlayer({
 		x = ESX.PlayerData.coords.x,
@@ -42,10 +39,12 @@ AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
 		TriggerEvent('esx:loadingScreenOff')
 		ShutdownLoadingScreen()
 		ShutdownLoadingScreenNui()
-		FreezeEntityPosition(ESX.PlayerData.ped, false)
 	end)
 
+	ESX.PlayerLoaded = true
+
 	while ESX.PlayerData.ped == nil do Wait(20) end
+
 	-- enable PVP
 	if Config.EnablePVP then
 		SetCanAttackFriendly(ESX.PlayerData.ped, true, false)
@@ -130,7 +129,6 @@ AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
 	end
 
 	SetDefaultVehicleNumberPlateTextPattern(-1, Config.CustomAIPlates)
-	FreezeEntityPosition(ESX.PlayerData.ped, false)
 	StartServerSyncLoops()
 end)
 
@@ -144,10 +142,8 @@ RegisterNetEvent('esx:setMaxWeight')
 AddEventHandler('esx:setMaxWeight', function(newMaxWeight) ESX.SetPlayerData("maxWeight", newMaxWeight) end)
 
 local function onPlayerSpawn()
-	if ESX.PlayerLoaded then
 		ESX.SetPlayerData('ped', PlayerPedId())
 		ESX.SetPlayerData('dead', false)
-	end
 end
 
 AddEventHandler('playerSpawned', onPlayerSpawn)
