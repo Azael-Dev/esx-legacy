@@ -45,7 +45,7 @@ AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
 
 	while ESX.PlayerData.ped == nil do Wait(20) end
 
-	-- enable PVP
+		-- enable PVP
 	if Config.EnablePVP then
 		SetCanAttackFriendly(ESX.PlayerData.ped, true, false)
 		NetworkSetFriendlyFireOption(true)
@@ -103,7 +103,7 @@ AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
 				if #DisabledComps > 0 then
 					Sleep = false
 					for i=1, #(DisabledComps) do
-								HideHudComponentThisFrame(i)
+						HideHudComponentThisFrame(DisabledComps[i])
 					end
 				end
 				
