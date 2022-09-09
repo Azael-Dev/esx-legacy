@@ -1,5 +1,5 @@
 local pickups = {}
-
+local PlayerBank, PlayerMoney = 0,0
 CreateThread(function()
 	while true do
 		Wait(0)
@@ -195,6 +195,13 @@ AddEventHandler('esx:setAccountMoney', function(account)
 	for i=1, #(ESX.PlayerData.accounts) do
 		if ESX.PlayerData.accounts[i].name == account.name then
 			ESX.PlayerData.accounts[i] = account
+			if ESX.PlayerData.accounts[i].name == "bank" then
+				PlayerBank = account.money
+				StatSetInt("BANK_BALANCE", PlayerBank, true)
+			elseif ESX.PlayerData.accounts[i].name == "money" then
+				PlayerMoney = account.money
+				StatSetInt("MP0_WALLET_BALANCE", PlayerMoney, true)
+			end
 			break
 		end
 	end
@@ -404,8 +411,9 @@ end
 if Config.EnableHud then
 	CreateThread(function()
 		local isPaused = false
-		local time = 500
+		
 		while true do
+			local time = 500
 			Wait(time)
 
 			if IsPauseMenuActive() and not isPaused then
