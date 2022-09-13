@@ -169,6 +169,10 @@ if GetResourceState("esx_context") ~= "missing" then
     function ESX.CloseContext(...)
         exports["esx_context"]:Close(...)
     end
+
+    function ESX.RefreshContext(...)
+       exports["esx_context"]:Refresh(...) 
+    end
 else 
     function ESX.OpenContext()
         print("[ERROR] Tried to open context menu, but esx_context is missing!")
@@ -179,6 +183,10 @@ else
     end
 
     function ESX.CloseContext()
+        print("[ERROR] Tried to close context menu, but esx_context is missing!")
+    end
+
+    function ESX.RefreshContext()
         print("[ERROR] Tried to close context menu, but esx_context is missing!")
     end
 end
@@ -490,13 +498,26 @@ function ESX.Game.SpawnVehicle(vehicle, coords, heading, cb, networked)
         local isAutomobile = IsThisModelACar(model)
         if isAutomobile ~= false then isAutomobile = true end
         ESX.TriggerServerCallback('esx:Onesync:SpawnVehicle',function(NetID)
-            print("Spawned Vehicle: " .. NetID)
             if NetID then
+                local Tries = 0
+                SetNetworkIdCanMigrate(NetID, true)
                 local vehicle = NetworkGetEntityFromNetworkId(NetID)
-                while not DoesEntityExist(vehicle) and not NetworkHasControlOfEntity(vehicle) do
-                    vehicle = NetworkGetEntityFromNetworkId(NetID)
-                    NetworkRequestControlOfEntity(vehicle)
+                while not DoesEntityExist(vehicle) do
                     Wait(0)
+                    vehicle = NetworkGetEntityFromNetworkId(NetID)
+                    Tries += 1 
+                    if Tries > 250 then
+                        break
+                    end
+                end
+                Tries = 0
+                NetworkRequestControlOfEntity(vehicle)
+                while not NetworkHasControlOfEntity(vehicle) do
+                    Wait(0)
+                    Tries += 1 
+                    if Tries > 250 then
+                        break
+                    end
                 end
                 SetEntityAsMissionEntity(vehicle, true, true)
                 SetVehicleHasBeenOwnedByPlayer(vehicle, true)
@@ -692,6 +713,12 @@ function ESX.Game.GetVehicleProperties(vehicle)
             customPrimaryColor = {r, g, b}
         end
 
+        local customXenonColorR, customXenonColorG, customXenonColorB = GetVehicleXenonLightsCustomColor(vehicle)
+        local customXenonColor = nil
+        if customXenonColorR and customXenonColorG and customXenonColorB then 
+            customXenonColor = {customXenonColorR, customXenonColorG, customXenonColorB}
+        end
+        
         local hasCustomSecondaryColor = GetIsVehicleSecondaryColourCustom(vehicle)
         local customSecondaryColor = nil
         if hasCustomSecondaryColor then
@@ -771,6 +798,7 @@ function ESX.Game.GetVehicleProperties(vehicle)
             wheels = GetVehicleWheelType(vehicle),
             windowTint = GetVehicleWindowTint(vehicle),
             xenonColor = GetVehicleXenonLightsColor(vehicle),
+            customXenonColor = customXenonColor,
 
             neonEnabled = {IsVehicleNeonLightEnabled(vehicle, 0), IsVehicleNeonLightEnabled(vehicle, 1),
                            IsVehicleNeonLightEnabled(vehicle, 2), IsVehicleNeonLightEnabled(vehicle, 3)},
@@ -911,6 +939,10 @@ function ESX.Game.SetVehicleProperties(vehicle, props)
         end
         if props.xenonColor then
             SetVehicleXenonLightsColor(vehicle, props.xenonColor)
+        end
+        if props.customXenonColor then
+            SetVehicleXenonLightsCustomColor(vehicle, props.customXenonColor[1], props.customXenonColor[2],
+                props.customXenonColor[3])
         end
         if props.modSmokeEnabled then
             ToggleVehicleMod(vehicle, 20, true)

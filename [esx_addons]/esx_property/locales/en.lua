@@ -108,7 +108,7 @@ Locales['en'] = {
 		["wardrobe_desc"] = "Change Position of Property Wardrobe.",
 		["Furniture_title"] = "Furniture",
 		["Furniture_desc"] = "Change Position of Property Wardrobe.",
-		["enter_title"] = "Inventory",
+		["enter_title"] = "Enter",
 		["knock_title"] = "Knock On Door",
 		["buy_title"] = "Buy",
 		["buy_desc"] = "Buy This Property For $%s",
@@ -200,5 +200,6 @@ Locales['en'] = {
 		["server_shutdown"] = "Server Shutdown",
 		["manual_save"] = "Manual Save (Requested By %s)",
 		["resource_stop"] = "Resource Stopping",
+		["force_save"] = "Force Save (Requested By %s)",
 		["interval_saving"] = "Interval Saving"
 	}

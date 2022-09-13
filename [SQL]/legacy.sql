@@ -385,7 +385,10 @@ CREATE TABLE `users` (
   `status` longtext DEFAULT NULL,
   `is_dead` tinyint(1) DEFAULT 0,
   `id` int(11) NOT NULL,
-  `last_property` varchar(255) DEFAULT NULL
+  `disabled` TINYINT(1) NULL DEFAULT '0',
+  `last_property` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_seen` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 -- --------------------------------------------------------
@@ -1006,8 +1009,14 @@ INSERT INTO `job_grades` (job_name, grade, name, label, salary, skin_male, skin_
 --
 
 CREATE TABLE IF NOT EXISTS `banking` (
-  `identifier` varchar(50) DEFAULT NULL,
+  `identifier` varchar(46) DEFAULT NULL,
   `type` varchar(50) DEFAULT NULL,
   `amount` int(64) DEFAULT NULL,
-  `time` date DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `time` bigint(20) DEFAULT NULL,
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `balance` int(11) DEFAULT 0,
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE `users` ADD COLUMN `pincode` INT NULL;
+
