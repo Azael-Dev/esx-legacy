@@ -1,5 +1,6 @@
 local playerIdentity = {}
 local alreadyRegistered = {}
+local multichar = ESX.GetConfig().Multichar
 
 local function deleteIdentity(xPlayer)
     if alreadyRegistered[xPlayer.identifier] then
@@ -337,83 +338,85 @@ else
 		end
 	end
 
-    AddEventHandler('playerConnecting', function(playerName, setKickReason, deferrals)
-        deferrals.defer()
-        local playerId, identifier = source, ESX.GetIdentifier(source)
-        Wait(40)
+	if not multichar then
+		AddEventHandler('playerConnecting', function(playerName, setKickReason, deferrals)
+			deferrals.defer()
+			local playerId, identifier = source, ESX.GetIdentifier(source)
+			Wait(40)
 
-        if identifier then
-            MySQL.single('SELECT firstname, lastname, dateofbirth, sex, height FROM users WHERE identifier = ?',
-                {identifier}, function(result)
-                    if result then
-                        if result.firstname then
-                            playerIdentity[identifier] = {
-                                firstName = result.firstname,
-                                lastName = result.lastname,
-                                dateOfBirth = result.dateofbirth,
-                                sex = result.sex,
-                                height = result.height
-                            }
+			if identifier then
+				MySQL.single('SELECT firstname, lastname, dateofbirth, sex, height FROM users WHERE identifier = ?',
+				    {identifier}, function(result)
+                        if result then
+                            if result.firstname then
+                                playerIdentity[identifier] = {
+                                    firstName = result.firstname,
+                                    lastName = result.lastname,
+                                    dateOfBirth = result.dateofbirth,
+                                    sex = result.sex,
+                                    height = result.height
+                                }
 
-                            alreadyRegistered[identifier] = true
+                                alreadyRegistered[identifier] = true
 
-                            deferrals.done()
+                                deferrals.done()
+                            else
+                                playerIdentity[identifier] = nil
+                                alreadyRegistered[identifier] = false
+                                deferrals.done()
+                            end
                         else
                             playerIdentity[identifier] = nil
                             alreadyRegistered[identifier] = false
                             deferrals.done()
                         end
-                    else
-                        playerIdentity[identifier] = nil
-                        alreadyRegistered[identifier] = false
-                        deferrals.done()
+                    end)
+			else
+				deferrals.done(TranslateCap('no_identifier'))
+			end
+		end)
+
+		AddEventHandler('onResourceStart', function(resource)
+            if resource == GetCurrentResourceName() then
+                Wait(300)
+
+                while not ESX do Wait(0) end
+
+                local xPlayers = ESX.GetExtendedPlayers()
+
+                for i=1, #(xPlayers) do 
+                    if xPlayers[i] then
+                        checkIdentity(xPlayers[i])
                     end
-                end)
-        else
-            deferrals.done(TranslateCap('no_identifier'))
-        end
-    end)
-
-    AddEventHandler('onResourceStart', function(resource)
-        if resource == GetCurrentResourceName() then
-            Wait(300)
-
-            while not ESX do Wait(0) end
-
-            local xPlayers = ESX.GetExtendedPlayers()
-
-            for i=1, #(xPlayers) do 
-                if xPlayers[i] then
-                    checkIdentity(xPlayers[i])
                 end
             end
-        end
-    end)
+        end)
 
-    RegisterNetEvent('esx:playerLoaded', function(playerId, xPlayer)
-        local currentIdentity = playerIdentity[xPlayer.identifier]
+		RegisterNetEvent('esx:playerLoaded', function(playerId, xPlayer)
+			local currentIdentity = playerIdentity[xPlayer.identifier]
 
-        if currentIdentity and alreadyRegistered[xPlayer.identifier] == true then
-            xPlayer.setName(('%s %s'):format(currentIdentity.firstName, currentIdentity.lastName))
-            xPlayer.set('firstName', currentIdentity.firstName)
-            xPlayer.set('lastName', currentIdentity.lastName)
-            xPlayer.set('dateofbirth', currentIdentity.dateOfBirth)
-            xPlayer.set('sex', currentIdentity.sex)
-            xPlayer.set('height', currentIdentity.height)
-            TriggerClientEvent('esx_identity:setPlayerData', xPlayer.source, currentIdentity)
-            if currentIdentity.saveToDatabase then
-                saveIdentityToDatabase(xPlayer.identifier, currentIdentity)
+            if currentIdentity and alreadyRegistered[xPlayer.identifier] == true then
+                xPlayer.setName(('%s %s'):format(currentIdentity.firstName, currentIdentity.lastName))
+                xPlayer.set('firstName', currentIdentity.firstName)
+                xPlayer.set('lastName', currentIdentity.lastName)
+                xPlayer.set('dateofbirth', currentIdentity.dateOfBirth)
+                xPlayer.set('sex', currentIdentity.sex)
+                xPlayer.set('height', currentIdentity.height)
+                TriggerClientEvent('esx_identity:setPlayerData', xPlayer.source, currentIdentity)
+                if currentIdentity.saveToDatabase then
+                    saveIdentityToDatabase(xPlayer.identifier, currentIdentity)
+                end
+
+                Wait(0)
+
+                TriggerClientEvent('esx_identity:alreadyRegistered', xPlayer.source)
+
+                playerIdentity[xPlayer.identifier] = nil
+            else
+                TriggerClientEvent('esx_identity:showRegisterIdentity', xPlayer.source)
             end
-
-            Wait(0)
-
-            TriggerClientEvent('esx_identity:alreadyRegistered', xPlayer.source)
-
-            playerIdentity[xPlayer.identifier] = nil
-        else
-            TriggerClientEvent('esx_identity:showRegisterIdentity', xPlayer.source)
-        end
-    end)
+		end)
+	end
 
 	ESX.RegisterServerCallback('esx_identity:registerIdentity', function(source, cb, data)
 		local xPlayer = ESX.GetPlayerFromId(source)
@@ -476,8 +479,53 @@ else
 				cb(false)
 			end
 		else
-            TriggerClientEvent("esx:showNotification", source, TranslateCap('data_incorrect'), "error")
-            cb(false)
+			if multichar then
+				if checkNameFormat(data.firstname) then
+					if checkNameFormat(data.lastname) then
+						if checkSexFormat(data.sex) then
+							if checkDOBFormat(data.dateofbirth) then
+                                local formattedFirstName = formatName(data.firstname)
+                                local formattedLastName = formatName(data.lastname)
+                                local formattedDate = formatDate(data.dateofbirth)
+             
+                                data.firstname = formattedFirstName
+                                data.lastname = formattedLastName
+                                data.dateofbirth = formattedDate
+								if checkHeightFormat(data.height) then
+                                    local Identity= {
+										firstName = formattedFirstName,
+										lastName = formattedLastName,
+										dateOfBirth = formattedDate,
+										sex = data.sex,
+										height = data.height
+									}
+									TriggerEvent('esx_identity:completedRegistration', source, data)
+                                    TriggerClientEvent('esx_identity:setPlayerData', source, Identity)
+									cb(true)
+								else
+									TriggerClientEvent("esx:showNotification", source, TranslateCap('invalid_height_format'), "error")
+									cb(false)
+								end
+							else
+								TriggerClientEvent("esx:showNotification", source, TranslateCap('invalid_dob_format'), "error")
+								cb(false)
+							end
+						else
+							TriggerClientEvent("esx:showNotification", source, TranslateCap('invalid_sex_format'), "error")
+							cb(false)
+						end
+					else
+						TriggerClientEvent("esx:showNotification", source, TranslateCap('invalid_lastname_format'), "error")
+						cb(false)
+					end
+				else
+					TriggerClientEvent("esx:showNotification", source, TranslateCap('invalid_firstname_format'), "error")
+					cb(false)
+				end
+			else
+				TriggerClientEvent("esx:showNotification", source, TranslateCap('data_incorrect'), "error")
+                cb(false)
+			end
 		end
 	end)
 end
