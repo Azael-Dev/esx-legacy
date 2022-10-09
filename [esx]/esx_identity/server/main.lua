@@ -372,48 +372,48 @@ else
         else
             deferrals.done(TranslateCap('no_identifier'))
         end
+    end)
 
-		AddEventHandler('onResourceStart', function(resource)
-            if resource == GetCurrentResourceName() then
-                Wait(300)
+    AddEventHandler('onResourceStart', function(resource)
+        if resource == GetCurrentResourceName() then
+            Wait(300)
 
-                while not ESX do Wait(0) end
+            while not ESX do Wait(0) end
 
-                local xPlayers = ESX.GetExtendedPlayers()
+            local xPlayers = ESX.GetExtendedPlayers()
 
-                for i=1, #(xPlayers) do 
-                    if xPlayers[i] then
-                        checkIdentity(xPlayers[i])
-                    end
+            for i=1, #(xPlayers) do 
+                if xPlayers[i] then
+                    checkIdentity(xPlayers[i])
                 end
             end
-        end)
+        end
+    end)
 
-		RegisterNetEvent('esx:playerLoaded', function(playerId, xPlayer)
-			local currentIdentity = playerIdentity[xPlayer.identifier]
+    RegisterNetEvent('esx:playerLoaded', function(playerId, xPlayer)
+        local currentIdentity = playerIdentity[xPlayer.identifier]
 
-            if currentIdentity and alreadyRegistered[xPlayer.identifier] == true then
-                xPlayer.setName(('%s %s'):format(currentIdentity.firstName, currentIdentity.lastName))
-                xPlayer.set('firstName', currentIdentity.firstName)
-                xPlayer.set('lastName', currentIdentity.lastName)
-                xPlayer.set('dateofbirth', currentIdentity.dateOfBirth)
-                xPlayer.set('sex', currentIdentity.sex)
-                xPlayer.set('height', currentIdentity.height)
-                TriggerClientEvent('esx_identity:setPlayerData', xPlayer.source, currentIdentity)
-                if currentIdentity.saveToDatabase then
-                    saveIdentityToDatabase(xPlayer.identifier, currentIdentity)
-                end
-
-                Wait(0)
-
-                TriggerClientEvent('esx_identity:alreadyRegistered', xPlayer.source)
-
-                playerIdentity[xPlayer.identifier] = nil
-            else
-                TriggerClientEvent('esx_identity:showRegisterIdentity', xPlayer.source)
+        if currentIdentity and alreadyRegistered[xPlayer.identifier] == true then
+            xPlayer.setName(('%s %s'):format(currentIdentity.firstName, currentIdentity.lastName))
+            xPlayer.set('firstName', currentIdentity.firstName)
+            xPlayer.set('lastName', currentIdentity.lastName)
+            xPlayer.set('dateofbirth', currentIdentity.dateOfBirth)
+            xPlayer.set('sex', currentIdentity.sex)
+            xPlayer.set('height', currentIdentity.height)
+            TriggerClientEvent('esx_identity:setPlayerData', xPlayer.source, currentIdentity)
+            if currentIdentity.saveToDatabase then
+                saveIdentityToDatabase(xPlayer.identifier, currentIdentity)
             end
-		end)
-	end
+
+            Wait(0)
+
+            TriggerClientEvent('esx_identity:alreadyRegistered', xPlayer.source)
+
+            playerIdentity[xPlayer.identifier] = nil
+        else
+            TriggerClientEvent('esx_identity:showRegisterIdentity', xPlayer.source)
+        end
+    end)
 
 	ESX.RegisterServerCallback('esx_identity:registerIdentity', function(source, cb, data)
 		local xPlayer = ESX.GetPlayerFromId(source)
@@ -476,7 +476,7 @@ else
 				cb(false)
 			end
 		else
-			TriggerClientEvent("esx:showNotification", source, TranslateCap('data_incorrect'), "error")
+            TriggerClientEvent("esx:showNotification", source, TranslateCap('data_incorrect'), "error")
             cb(false)
 		end
 	end)
