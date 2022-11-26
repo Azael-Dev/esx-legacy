@@ -252,13 +252,15 @@ function ESX.GetPlayerFromIdentifier(identifier)
   end
 end
 
-function ESX.GetIdentifier(playerId)
+function ESX.GetIdentifier(playerId, option)
   local fxDk = GetConvarInt('sv_fxdkMode', 0) 
   if fxDk == 1 then
     return "ESX-DEBUG-LICENCE"
   end
+
+  local identifier = type(option) == 'string' and ('%s:'):format(option) or 'steam:'
   for k, v in ipairs(GetPlayerIdentifiers(playerId)) do
-    if string.match(v, 'steam:') then
+    if string.match(v, identifier) then
       return v
     end
   end

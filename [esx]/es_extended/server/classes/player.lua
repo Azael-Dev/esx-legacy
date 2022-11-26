@@ -16,8 +16,15 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 	self.variables = {}
 	self.weight = weight
 	self.maxWeight = Config.MaxWeight
+	self.license = ESX.GetIdentifier(self.playerId, 'license')
 
 	ExecuteCommand(('add_principal identifier.%s group.%s'):format(self.identifier, self.group))
+	
+	Player(self.source).state:set("identifier", self.identifier, true)
+	Player(self.source).state:set("license", self.license, true)
+	Player(self.source).state:set("job", self.job, true)
+	Player(self.source).state:set("group", self.group, true)
+	Player(self.source).state:set("name", self.name, true)
 
 	function self.triggerEvent(eventName, ...)
 		TriggerClientEvent(eventName, self.source, ...)
@@ -77,6 +84,7 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 	function self.setGroup(newGroup)
 		ExecuteCommand(('remove_principal identifier.%s group.%s'):format(self.identifier, self.group))
 		self.group = newGroup
+		Player(self.source).state:set("group", self.group, true)
 		ExecuteCommand(('add_principal identifier.%s group.%s'):format(self.identifier, self.group))
 	end
 
@@ -86,6 +94,7 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 
 	function self.set(k, v)
 		self.variables[k] = v
+		Player(self.source).state:set(k, v, true)
 	end
 
 	function self.get(k)
@@ -169,6 +178,7 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 
 	function self.setName(newName)
 		self.name = newName
+		Player(self.source).state:set("name", self.name, true)
 	end
 
 	function self.setAccountMoney(accountName, money, reason)
@@ -359,6 +369,7 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 
 			TriggerEvent('esx:setJob', self.source, self.job, lastJob)
 			self.triggerEvent('esx:setJob', self.job)
+			Player(self.source).state:set("job", self.job, true)
 		else
 			print(('[es_extended] [^3WARNING^7] Ignoring invalid ^5.setJob()^7 usage for ID: ^5%s^7, Job: ^5%s^7'):format(self.source, job))
 		end
