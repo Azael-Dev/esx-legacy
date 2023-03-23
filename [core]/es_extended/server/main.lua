@@ -1,26 +1,48 @@
 SetMapName('San Andreas')
 SetGameType('ESX Legacy')
 
+local oneSyncState = GetConvar('onesync', 'off')
 local newPlayer = 'INSERT INTO `users` SET `accounts` = ?, `identifier` = ?, `group` = ?'
-local loadPlayer = 'SELECT `accounts`, `job`, `job_grade`, `group`, `position`, `inventory`, `skin`, `loadout`'
+local loadPlayer = 'SELECT `accounts`, `job`, `job_grade`, `group`, `position`, `inventory`, `skin`, `loadout`, `metadata`'
 
-if Config.Identity then
+if Config.Multichar then
+  newPlayer = newPlayer .. ', `firstname` = ?, `lastname` = ?, `dateofbirth` = ?, `sex` = ?, `height` = ?'
+end
+
+if Config.Multichar or Config.Identity then
   loadPlayer = loadPlayer .. ', `firstname`, `lastname`, `dateofbirth`, `sex`, `height`'
 end
 
 loadPlayer = loadPlayer .. ' FROM `users` WHERE identifier = ?'
 
-RegisterNetEvent('esx:onPlayerJoined')
-AddEventHandler('esx:onPlayerJoined', function()
-  local _source = source
-  while not next(ESX.Jobs) do
-    Wait(50)
-  end
+if Config.Multichar then
+  AddEventHandler('esx:onPlayerJoined', function(src, char, data)
+    while not next(ESX.Jobs) do
+      Wait(50)
+    end
 
-  if not ESX.Players[_source] then
-    onPlayerJoined(_source)
-  end
-end)
+    if not ESX.Players[src] then
+      local identifier = char .. ':' .. ESX.GetIdentifier(src)
+      if data then
+        createESXPlayer(identifier, src, data)
+      else
+        loadESXPlayer(identifier, src, false)
+      end
+    end
+  end)
+else
+  RegisterNetEvent('esx:onPlayerJoined')
+  AddEventHandler('esx:onPlayerJoined', function()
+    local _source = source
+    while not next(ESX.Jobs) do
+      Wait(50)
+    end
+
+    if not ESX.Players[_source] then
+      onPlayerJoined(_source)
+    end
+  end)
+end
 
 function onPlayerJoined(playerId)
   local identifier = ESX.GetIdentifier(playerId)
@@ -34,6 +56,7 @@ function onPlayerJoined(playerId)
       if result then
         loadESXPlayer(identifier, playerId, false)
       else
+        
         createESXPlayer(identifier, playerId)
       end
     end
@@ -56,33 +79,49 @@ function createESXPlayer(identifier, playerId, data)
     defaultGroup = "admin"
   end
 
-  MySQL.prepare(newPlayer, {json.encode(accounts), identifier, defaultGroup}, function()
-    loadESXPlayer(identifier, playerId, true)
+  if not Config.Multichar then
+    MySQL.prepare(newPlayer, {json.encode(accounts), identifier, defaultGroup}, function()
+      loadESXPlayer(identifier, playerId, true)
+    end)
+  else
+    MySQL.prepare(newPlayer,
+      {json.encode(accounts), identifier, defaultGroup, data.firstname, data.lastname, data.dateofbirth, data.sex, data.height}, function()
+        loadESXPlayer(identifier, playerId, true)
+      end)
+  end
+end
+
+if not Config.Multichar then
+  AddEventHandler('playerConnecting', function(name, setCallback, deferrals)
+    deferrals.defer()
+    local playerId = source
+    local identifier = ESX.GetIdentifier(playerId)
+
+    if oneSyncState == "off" or oneSyncState == "legacy" then
+      return deferrals.done(('[ESX] ESX Requires Onesync Infinity to work. This server currently has Onesync set to: %s'):format(oneSyncState))
+    end
+
+    if not Core.DatabaseConnected then
+      return deferrals.done(('[ESX] ESX Cannot Connect to your database. Please make sure it is correctly configured in your server.cfg'):format(oneSyncState))
+    end
+    
+    if identifier then
+      if ESX.GetPlayerFromIdentifier(identifier) then
+        return deferrals.done(
+          ('[ESX] There was an error loading your character!\nError code: identifier-active\n\nThis error is caused by a player on this server who has the same identifier as you have. Make sure you are not playing on the same account.\n\nYour identifier: %s'):format(
+            identifier))
+      else
+        return deferrals.done()
+      end
+    else
+      return deferrals.done(
+        '[ESX] There was an error loading your character!\nError code: identifier-missing\n\nThe cause of this error is not known, your identifier could not be found. Please come back later or report this problem to the server administration team.')
+    end
   end)
 end
 
-AddEventHandler('playerConnecting', function(name, setCallback, deferrals)
-  deferrals.defer()
-  local playerId = source
-  local identifier = ESX.GetIdentifier(playerId)
-
-  if identifier then
-    if ESX.GetPlayerFromIdentifier(identifier) then
-      deferrals.done(
-        ('[ESX] There was an error loading your character!\nError code: identifier-active\n\nThis error is caused by a player on this server who has the same identifier as you have. Make sure you are not playing on the same account.\n\nYour identifier: %s'):format(
-          identifier))
-    else
-      deferrals.done()
-    end
-  else
-    deferrals.done(
-      '[ESX] There was an error loading your character!\nError code: identifier-missing\n\nThe cause of this error is not known, your identifier could not be found. Please come back later or report this problem to the server administration team.')
-  end
-end)
-
 function loadESXPlayer(identifier, playerId, isNew)
-  local userData = {accounts = {}, inventory = {}, job = {}, loadout = {}, playerName = GetPlayerName(playerId), weight = 0}
-
+  local userData = {accounts = {}, inventory = {}, job = {}, loadout = {}, playerName = GetPlayerName(playerId), weight = 0, metadata = {}}
   local result = MySQL.prepare.await(loadPlayer, {identifier})
   local job, grade, jobObject, gradeObject = result.job, tostring(result.job_grade)
   local foundAccounts, foundItems = {}, {}
@@ -241,8 +280,13 @@ function loadESXPlayer(identifier, playerId, isNew)
     end
   end
 
+  if result.metadata and result.metadata ~= '' then
+    local metadata = json.decode(result.metadata)
+    userData.metadata = metadata
+  end
+
   local xPlayer = CreateExtendedPlayer(playerId, identifier, userData.group, userData.accounts, userData.inventory, userData.weight, userData.job,
-    userData.loadout, userData.playerName, userData.coords)
+    userData.loadout, userData.playerName, userData.coords, userData.metadata)
   ESX.Players[playerId] = xPlayer
   Core.playersByIdentifier[identifier] = xPlayer
 
@@ -277,7 +321,8 @@ function loadESXPlayer(identifier, playerId, isNew)
       lastName = xPlayer.get("lastName") or "Doe",
       dateofbirth = xPlayer.get("dateofbirth") or "01/01/2000",
       height = xPlayer.get("height") or 120,
-      dead = false
+      dead = false,
+      metadata = xPlayer.getMeta()
     }, isNew,
     userData.skin)
 
@@ -549,7 +594,7 @@ ESX.RegisterServerCallback('esx:getPlayerData', function(source, cb)
   local xPlayer = ESX.GetPlayerFromId(source)
 
   cb({identifier = xPlayer.identifier, accounts = xPlayer.getAccounts(), inventory = xPlayer.getInventory(), job = xPlayer.getJob(),
-      loadout = xPlayer.getLoadout(), money = xPlayer.getMoney(), position = xPlayer.getCoords(true)})
+      loadout = xPlayer.getLoadout(), money = xPlayer.getMoney(), position = xPlayer.getCoords(true), metadata = xPlayer.getMeta()})
 end)
 
 ESX.RegisterServerCallback('esx:isUserAdmin', function(source, cb)
@@ -564,7 +609,7 @@ ESX.RegisterServerCallback('esx:getOtherPlayerData', function(source, cb, target
   local xPlayer = ESX.GetPlayerFromId(target)
 
   cb({identifier = xPlayer.identifier, accounts = xPlayer.getAccounts(), inventory = xPlayer.getInventory(), job = xPlayer.getJob(),
-      loadout = xPlayer.getLoadout(), money = xPlayer.getMoney(), position = xPlayer.getCoords(true)})
+      loadout = xPlayer.getLoadout(), money = xPlayer.getMoney(), position = xPlayer.getCoords(true), metadata = xPlayer.getMeta()})
 end)
 
 ESX.RegisterServerCallback('esx:getPlayerNames', function(source, cb, players)
@@ -595,3 +640,4 @@ end)
 AddEventHandler('txAdmin:events:serverShuttingDown', function()
   Core.SavePlayers()
 end)
+

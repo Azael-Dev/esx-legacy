@@ -1,8 +1,9 @@
 local pickups = {}
 
 CreateThread(function()
-	while true do
-		Wait(0)
+	while not Config.Multichar do
+		Wait(100)
+		
 		if NetworkIsPlayerActive(PlayerId()) then
 			exports.spawnmanager:setAutoSpawn(false)
 			DoScreenFadeOut(0)
@@ -21,29 +22,33 @@ RegisterNetEvent('esx:playerLoaded')
 AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
 	ESX.PlayerData = xPlayer
 
-	exports.spawnmanager:spawnPlayer({
-		x = ESX.PlayerData.coords.x,
-		y = ESX.PlayerData.coords.y,
-		z = ESX.PlayerData.coords.z + 0.25,
-		heading = ESX.PlayerData.coords.heading,
-		model = `mp_m_freemode_01`,
-		skipFade = false
-	}, function()
-		TriggerServerEvent('esx:onPlayerSpawn')
-		TriggerEvent('esx:onPlayerSpawn')
-		TriggerEvent('esx:restoreLoadout')
-		TriggerEvent('playerSpawned') -- compatibility with old scripts
+	if Config.Multichar then
+		Wait(3000)
+	else
+		exports.spawnmanager:spawnPlayer({
+			x = ESX.PlayerData.coords.x,
+			y = ESX.PlayerData.coords.y,
+			z = ESX.PlayerData.coords.z + 0.25,
+			heading = ESX.PlayerData.coords.heading,
+			model = `mp_m_freemode_01`,
+			skipFade = false
+		}, function()
+			TriggerServerEvent('esx:onPlayerSpawn')
+			TriggerEvent('esx:onPlayerSpawn')
+			TriggerEvent('esx:restoreLoadout')
+			TriggerEvent('playerSpawned') -- compatibility with old scripts
 
-		if isNew then
-			TriggerEvent('skinchanger:loadDefaultModel', skin.sex == 0)
-		elseif skin then
-			TriggerEvent('skinchanger:loadSkin', skin)
-		end
+			if isNew then
+				TriggerEvent('skinchanger:loadDefaultModel', skin.sex == 0)
+			elseif skin then
+				TriggerEvent('skinchanger:loadSkin', skin)
+			end
 
-		TriggerEvent('esx:loadingScreenOff')
-		ShutdownLoadingScreen()
-		ShutdownLoadingScreenNui()
-	end)
+			TriggerEvent('esx:loadingScreenOff')
+			ShutdownLoadingScreen()
+			ShutdownLoadingScreenNui()
+		end)
+	end
 
 	ESX.PlayerLoaded = true
 
@@ -71,6 +76,15 @@ AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
 		end
 	end
 
+	if Config.DisableVehicleSeatShuff then
+		AddEventHandler('esx:enteredVehicle', function(vehicle, plate, seat)
+			if seat == 0 then
+				SetPedIntoVehicle(ESX.PlayerData.ped, vehicle, 0)
+				SetPedConfigFlag(ESX.PlayerData.ped, 184, true)
+			end	
+		end)
+	end
+
 	if Config.DisableHealthRegeneration or Config.DisableWeaponWheel or Config.DisableAimAssist or Config.DisableVehicleRewards then
 		CreateThread(function()
 			while true do
@@ -96,6 +110,74 @@ AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
 				Wait(0)
 			end
 		end)
+	end
+
+	-- Disable Dispatch services
+	if Config.DisableDispatchServices then
+		for i = 1, 15 do
+			EnableDispatchService(i, false)
+		end
+	end
+
+	-- Disable Scenarios
+	if Config.DisableScenarios then
+		local scenarios = {
+			'WORLD_VEHICLE_ATTRACTOR',
+			'WORLD_VEHICLE_AMBULANCE',
+			'WORLD_VEHICLE_BICYCLE_BMX',
+			'WORLD_VEHICLE_BICYCLE_BMX_BALLAS',
+			'WORLD_VEHICLE_BICYCLE_BMX_FAMILY',
+			'WORLD_VEHICLE_BICYCLE_BMX_HARMONY',
+			'WORLD_VEHICLE_BICYCLE_BMX_VAGOS',
+			'WORLD_VEHICLE_BICYCLE_MOUNTAIN',
+			'WORLD_VEHICLE_BICYCLE_ROAD',
+			'WORLD_VEHICLE_BIKE_OFF_ROAD_RACE',
+			'WORLD_VEHICLE_BIKER',
+			'WORLD_VEHICLE_BOAT_IDLE',
+			'WORLD_VEHICLE_BOAT_IDLE_ALAMO',
+			'WORLD_VEHICLE_BOAT_IDLE_MARQUIS',
+			'WORLD_VEHICLE_BOAT_IDLE_MARQUIS',
+			'WORLD_VEHICLE_BROKEN_DOWN',
+			'WORLD_VEHICLE_BUSINESSMEN',
+			'WORLD_VEHICLE_HELI_LIFEGUARD',
+			'WORLD_VEHICLE_CLUCKIN_BELL_TRAILER',
+			'WORLD_VEHICLE_CONSTRUCTION_SOLO',
+			'WORLD_VEHICLE_CONSTRUCTION_PASSENGERS',
+			'WORLD_VEHICLE_DRIVE_PASSENGERS',
+			'WORLD_VEHICLE_DRIVE_PASSENGERS_LIMITED',
+			'WORLD_VEHICLE_DRIVE_SOLO',
+			'WORLD_VEHICLE_FIRE_TRUCK',
+			'WORLD_VEHICLE_EMPTY',
+			'WORLD_VEHICLE_MARIACHI',
+			'WORLD_VEHICLE_MECHANIC',
+			'WORLD_VEHICLE_MILITARY_PLANES_BIG',
+			'WORLD_VEHICLE_MILITARY_PLANES_SMALL',
+			'WORLD_VEHICLE_PARK_PARALLEL',
+			'WORLD_VEHICLE_PARK_PERPENDICULAR_NOSE_IN',
+			'WORLD_VEHICLE_PASSENGER_EXIT',
+			'WORLD_VEHICLE_POLICE_BIKE',
+			'WORLD_VEHICLE_POLICE_CAR',
+			'WORLD_VEHICLE_POLICE',
+			'WORLD_VEHICLE_POLICE_NEXT_TO_CAR',
+			'WORLD_VEHICLE_QUARRY',
+			'WORLD_VEHICLE_SALTON',
+			'WORLD_VEHICLE_SALTON_DIRT_BIKE',
+			'WORLD_VEHICLE_SECURITY_CAR',
+			'WORLD_VEHICLE_STREETRACE',
+			'WORLD_VEHICLE_TOURBUS',
+			'WORLD_VEHICLE_TOURIST',
+			'WORLD_VEHICLE_TANDL',
+			'WORLD_VEHICLE_TRACTOR',
+			'WORLD_VEHICLE_TRACTOR_BEACH',
+			'WORLD_VEHICLE_TRUCK_LOGS',
+			'WORLD_VEHICLE_TRUCKS_TRAILERS',
+			'WORLD_VEHICLE_DISTANT_EMPTY_GROUND',
+			'WORLD_HUMAN_PAPARAZZI'
+		}
+		
+		for i, v in pairs(scenarios) do
+			SetScenarioTypeEnabled(v, false)
+		end
 	end
 
 	SetDefaultVehicleNumberPlateTextPattern(-1, Config.CustomAIPlates)
@@ -604,27 +686,8 @@ AddEventHandler("esx:freezePlayer", function(input)
 	end
 end)
 
-RegisterNetEvent("esx:GetVehicleType", function(Model, Request)
-	if not IsModelInCdimage(Model) then
-		return TriggerServerEvent("esx:ReturnVehicleType", false, Request)
-	end
-
-	if Model == `submersible` or Model == `submersible2` then
-		return TriggerServerEvent("esx:ReturnVehicleType", "submarine", Request)
-	end
-
-	local VehicleType = GetVehicleClassFromName(Model)
-	local types = {
-		[8] = "bike",
-		[11] = "trailer",
-		[13] = "bike",
-		[14] = "boat",
-		[15] = "heli",
-		[16] = "plane",
-		[21] = "train",
-	}
-
-	TriggerServerEvent("esx:ReturnVehicleType", types[VehicleType] or "automobile", Request)
+ESX.RegisterClientCallback("esx:GetVehicleType", function(cb, model)
+	cb(ESX.GetVehicleType(model))
 end)
 
 local DoNotUse = {
@@ -643,3 +706,7 @@ for i = 1, #DoNotUse do
 		print("[^1ERROR^7] YOU ARE USING A RESOURCE THAT WILL BREAK ^1ESX^7, PLEASE REMOVE ^5" .. DoNotUse[i] .. "^7")
 	end
 end
+
+RegisterNetEvent('esx:updatePlayerData', function(key, val)
+	ESX.SetPlayerData(key, val)
+end)
