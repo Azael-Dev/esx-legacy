@@ -1,15 +1,15 @@
-game 'common'
+game("common")
 
-version '1.10.1'
-fx_version 'cerulean'
-author 'ESX-Framework'
-lua54 'yes'
-loadscreen 'index.html'
+version("1.10.1")
+fx_version("cerulean")
+author("ESX-Framework")
+lua54("yes")
+loadscreen("index.html")
 
-shared_script 'config.lua'
+shared_script("config.lua")
 
-loadscreen_manual_shutdown "yes"
+loadscreen_manual_shutdown("yes")
 
-client_script 'client/client.lua'
+client_script("client/client.lua")
 
-files { 'index.html', './vid/*.mp4', './vid/*.webm', './js/index.js', './css/index.css' }
+files({ "index.html", "./vid/*.mp4", "./vid/*.webm", "./js/index.js", "./css/index.css" })
