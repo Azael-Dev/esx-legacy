@@ -191,8 +191,7 @@ function ESX.UI.Menu.Open(menuType, namespace, name, data, submit, cancel, chang
 
         for i = 1, #ESX.UI.Menu.Opened, 1 do
             if ESX.UI.Menu.Opened[i] then
-                if ESX.UI.Menu.Opened[i].type == menuType and ESX.UI.Menu.Opened[i].namespace == namespace and
-                    ESX.UI.Menu.Opened[i].name == name then
+                if ESX.UI.Menu.Opened[i].type == menuType and ESX.UI.Menu.Opened[i].namespace == namespace and ESX.UI.Menu.Opened[i].name == name then
                     ESX.UI.Menu.Opened[i] = nil
                 end
             end
@@ -259,8 +258,7 @@ end
 function ESX.UI.Menu.Close(menuType, namespace, name)
     for i = 1, #ESX.UI.Menu.Opened, 1 do
         if ESX.UI.Menu.Opened[i] then
-            if ESX.UI.Menu.Opened[i].type == menuType and ESX.UI.Menu.Opened[i].namespace == namespace and
-                ESX.UI.Menu.Opened[i].name == name then
+            if ESX.UI.Menu.Opened[i].type == menuType and ESX.UI.Menu.Opened[i].namespace == namespace and ESX.UI.Menu.Opened[i].name == name then
                 ESX.UI.Menu.Opened[i].close()
                 ESX.UI.Menu.Opened[i] = nil
             end
@@ -280,8 +278,7 @@ end
 function ESX.UI.Menu.GetOpened(menuType, namespace, name)
     for i = 1, #ESX.UI.Menu.Opened, 1 do
         if ESX.UI.Menu.Opened[i] then
-            if ESX.UI.Menu.Opened[i].type == menuType and ESX.UI.Menu.Opened[i].namespace == namespace and
-                ESX.UI.Menu.Opened[i].name == name then
+            if ESX.UI.Menu.Opened[i].type == menuType and ESX.UI.Menu.Opened[i].namespace == namespace and ESX.UI.Menu.Opened[i].name == name then
                 return ESX.UI.Menu.Opened[i]
             end
         end
@@ -1034,7 +1031,7 @@ function ESX.ShowInventory()
 
     local playerPed = ESX.PlayerData.ped
     local elements = {
-        { unselectable = true, icon = 'fas fa-box' }
+        { unselectable = true, icon = "fas fa-box" },
     }
     local currentWeight = 0
 
@@ -1073,10 +1070,10 @@ function ESX.ShowInventory()
         end
     end
 
-    elements[1].title = TranslateCap('inventory', currentWeight, Config.MaxWeight)
+    elements[1].title = TranslateCap("inventory", currentWeight, Config.MaxWeight)
 
-    for i=1, #Config.Weapons do
-        local v = Config.Weapons[i] 
+    for i = 1, #Config.Weapons do
+        local v = Config.Weapons[i]
         local weaponHash = joaat(v.name)
 
         if HasPedGotWeapon(playerPed, weaponHash, false) then
@@ -1095,8 +1092,8 @@ function ESX.ShowInventory()
                 canRemove = true,
             }
         end
-    end 
-    
+    end
+
     ESX.CloseContext()
 
     ESX.OpenContext("right", elements, function(_, element)
@@ -1184,8 +1181,8 @@ function ESX.ShowInventory()
                                 local selectedPlayerPed = GetPlayerPed(selectedPlayer)
 
                                 if IsPedOnFoot(selectedPlayerPed) and not IsPedFalling(selectedPlayerPed) then
-                                    if itemType == 'item_weapon' then
-                                        TriggerServerEvent('esx:giveInventoryItem', selectedPlayerId, itemType, item, nil)
+                                    if itemType == "item_weapon" then
+                                        TriggerServerEvent("esx:giveInventoryItem", selectedPlayerId, itemType, item, nil)
                                         ESX.CloseContext()
                                     else
                                         local elementsG = {
@@ -1198,7 +1195,7 @@ function ESX.ShowInventory()
                                             local quantity = tonumber(menuG.eles[2].inputValue)
 
                                             if quantity and quantity > 0 and element.count >= quantity then
-                                                TriggerServerEvent('esx:giveInventoryItem', selectedPlayerId, itemType, item, quantity)
+                                                TriggerServerEvent("esx:giveInventoryItem", selectedPlayerId, itemType, item, quantity)
                                                 ESX.CloseContext()
                                             else
                                                 ESX.ShowNotification(TranslateCap("amount_invalid"))
@@ -1220,12 +1217,12 @@ function ESX.ShowInventory()
                     local dict, anim = "weapons@first_person@aim_rng@generic@projectile@sticky_bomb@", "plant_floor"
                     ESX.Streaming.RequestAnimDict(dict)
 
-                    if itemType == 'item_weapon' then
+                    if itemType == "item_weapon" then
                         ESX.CloseContext()
                         TaskPlayAnim(playerPed, dict, anim, 8.0, 1.0, 1000, 16, 0.0, false, false, false)
                         RemoveAnimDict(dict)
                         Wait(1000)
-                        TriggerServerEvent('esx:removeInventoryItem', itemType, item)
+                        TriggerServerEvent("esx:removeInventoryItem", itemType, item)
                     else
                         local elementsR = {
                             { unselectable = true, icon = "fas fa-trash", title = element.title },
@@ -1241,7 +1238,7 @@ function ESX.ShowInventory()
                                 TaskPlayAnim(playerPed, dict, anim, 8.0, 1.0, 1000, 16, 0.0, false, false, false)
                                 RemoveAnimDict(dict)
                                 Wait(1000)
-                                TriggerServerEvent('esx:removeInventoryItem', itemType, item, quantity)
+                                TriggerServerEvent("esx:removeInventoryItem", itemType, item, quantity)
                             else
                                 ESX.ShowNotification(TranslateCap("amount_invalid"))
                             end
@@ -1296,8 +1293,8 @@ function ESX.ShowInventory()
     end)
 end
 
-RegisterNetEvent('esx:showNotification')
-AddEventHandler('esx:showNotification', function(msg, notifyType, length)
+RegisterNetEvent("esx:showNotification")
+AddEventHandler("esx:showNotification", function(msg, notifyType, length)
     ESX.ShowNotification(msg, notifyType, length)
 end)
 
@@ -1311,7 +1308,7 @@ AddEventHandler("esx:showHelpNotification", function(msg, thisFrame, beep, durat
     ESX.ShowHelpNotification(msg, thisFrame, beep, duration)
 end)
 
-AddEventHandler('onResourceStop', function(resourceName)
+AddEventHandler("onResourceStop", function(resourceName)
     for i = 1, #ESX.UI.Menu.Opened, 1 do
         if ESX.UI.Menu.Opened[i] then
             if ESX.UI.Menu.Opened[i].resourceName == resourceName or ESX.UI.Menu.Opened[i].namespace == resourceName then
@@ -1321,39 +1318,39 @@ AddEventHandler('onResourceStop', function(resourceName)
         end
     end
 end)
--- Credits to txAdmin for the list. 
+-- Credits to txAdmin for the list.
 local mismatchedTypes = {
-    [`airtug`] = "automobile",       -- trailer
-    [`avisa`] = "submarine",         -- boat
-    [`blimp`] = "heli",              -- plane
-    [`blimp2`] = "heli",             -- plane
-    [`blimp3`] = "heli",             -- plane
-    [`caddy`] = "automobile",        -- trailer
-    [`caddy2`] = "automobile",       -- trailer
-    [`caddy3`] = "automobile",       -- trailer
-    [`chimera`] = "automobile",      -- bike
-    [`docktug`] = "automobile",      -- trailer
-    [`forklift`] = "automobile",     -- trailer
-    [`kosatka`] = "submarine",       -- boat
-    [`mower`] = "automobile",        -- trailer
-    [`policeb`] = "bike",            -- automobile
-    [`ripley`] = "automobile",       -- trailer
-    [`rrocket`] = "automobile",      -- bike
-    [`sadler`] = "automobile",       -- trailer
-    [`sadler2`] = "automobile",      -- trailer
-    [`scrap`] = "automobile",        -- trailer
-    [`slamtruck`] = "automobile",    -- trailer
-    [`Stryder`] = "automobile",      -- bike
-    [`submersible`] = "submarine",   -- boat
-    [`submersible2`] = "submarine",  -- boat
-    [`thruster`] = "heli",           -- automobile
-    [`towtruck`] = "automobile",     -- trailer
-    [`towtruck2`] = "automobile",    -- trailer
-    [`tractor`] = "automobile",      -- trailer
-    [`tractor2`] = "automobile",     -- trailer
-    [`tractor3`] = "automobile",     -- trailer
-    [`trailersmall2`] = "trailer",   -- automobile
-    [`utillitruck`] = "automobile",  -- trailer
+    [`airtug`] = "automobile", -- trailer
+    [`avisa`] = "submarine", -- boat
+    [`blimp`] = "heli", -- plane
+    [`blimp2`] = "heli", -- plane
+    [`blimp3`] = "heli", -- plane
+    [`caddy`] = "automobile", -- trailer
+    [`caddy2`] = "automobile", -- trailer
+    [`caddy3`] = "automobile", -- trailer
+    [`chimera`] = "automobile", -- bike
+    [`docktug`] = "automobile", -- trailer
+    [`forklift`] = "automobile", -- trailer
+    [`kosatka`] = "submarine", -- boat
+    [`mower`] = "automobile", -- trailer
+    [`policeb`] = "bike", -- automobile
+    [`ripley`] = "automobile", -- trailer
+    [`rrocket`] = "automobile", -- bike
+    [`sadler`] = "automobile", -- trailer
+    [`sadler2`] = "automobile", -- trailer
+    [`scrap`] = "automobile", -- trailer
+    [`slamtruck`] = "automobile", -- trailer
+    [`Stryder`] = "automobile", -- bike
+    [`submersible`] = "submarine", -- boat
+    [`submersible2`] = "submarine", -- boat
+    [`thruster`] = "heli", -- automobile
+    [`towtruck`] = "automobile", -- trailer
+    [`towtruck2`] = "automobile", -- trailer
+    [`tractor`] = "automobile", -- trailer
+    [`tractor2`] = "automobile", -- trailer
+    [`tractor3`] = "automobile", -- trailer
+    [`trailersmall2`] = "trailer", -- automobile
+    [`utillitruck`] = "automobile", -- trailer
     [`utillitruck2`] = "automobile", -- trailer
     [`utillitruck3`] = "automobile", -- trailer
 }
@@ -1361,8 +1358,10 @@ local mismatchedTypes = {
 ---@param model number|string
 ---@return string
 function ESX.GetVehicleType(model)
-    model = type(model) == 'string' and joaat(model) or model
-    if not IsModelInCdimage(model) then return end  
+    model = type(model) == "string" and joaat(model) or model
+    if not IsModelInCdimage(model) then
+        return
+    end
     if mismatchedTypes[model] then
         return mismatchedTypes[model]
     end

@@ -31,13 +31,13 @@ if GetResourceState("ox_inventory") ~= "missing" then
 end
 
 local function StartDBSync()
-	CreateThread(function()
-		local interval <const> = 10 * 60 * 1000
-		while true do
-			Wait(interval)
-			Core.SavePlayers()
-		end
-	end)
+    CreateThread(function()
+        local interval <const> = 10 * 60 * 1000
+        while true do
+            Wait(interval)
+            Core.SavePlayers()
+        end
+    end)
 end
 
 MySQL.ready(function()

@@ -112,21 +112,21 @@ function ESX.RegisterCommand(name, group, cb, allowConsole, suggestion)
                                 end
                                 local merge = table.concat(args, " ")
 
-								newArgs[v.name] = string.sub(merge, lenght)
-                            elseif v.type == 'coordinate' then
+                                newArgs[v.name] = string.sub(merge, lenght)
+                            elseif v.type == "coordinate" then
                                 local coord = tonumber(args[k]:match("(-?%d+%.?%d*)"))
-                                if(not coord) then
-                                    error = TranslateCap('commanderror_argumentmismatch_number', k)
+                                if not coord then
+                                    error = TranslateCap("commanderror_argumentmismatch_number", k)
                                 else
                                     newArgs[v.name] = coord
                                 end
-						    end
-						end
+                            end
+                        end
 
-						--backwards compatibility
-						if v.validate ~= nil and not v.validate then
-							error = nil
-						end
+                        --backwards compatibility
+                        if v.validate ~= nil and not v.validate then
+                            error = nil
+                        end
 
                         if error then
                             break
@@ -166,23 +166,23 @@ end
 
 local function updateHealthAndArmorInMetadata(xPlayer)
     local ped = GetPlayerPed(xPlayer.source)
-    xPlayer.setMeta('health', GetEntityHealth(ped))
-    xPlayer.setMeta('armor',GetPedArmour(ped))
+    xPlayer.setMeta("health", GetEntityHealth(ped))
+    xPlayer.setMeta("armor", GetPedArmour(ped))
 end
 
 function Core.SavePlayer(xPlayer, cb)
     updateHealthAndArmorInMetadata(xPlayer)
-	local parameters <const> = {
-		json.encode(xPlayer.getAccounts(true)),
-		xPlayer.job.name,
-		xPlayer.job.grade,
-		xPlayer.group,
-		json.encode(xPlayer.getCoords()),
-		json.encode(xPlayer.getInventory(true)),
-		json.encode(xPlayer.getLoadout(true)),
-		json.encode(xPlayer.getMeta()),
-		xPlayer.identifier
-	}
+    local parameters <const> = {
+        json.encode(xPlayer.getAccounts(true)),
+        xPlayer.job.name,
+        xPlayer.job.grade,
+        xPlayer.group,
+        json.encode(xPlayer.getCoords()),
+        json.encode(xPlayer.getInventory(true)),
+        json.encode(xPlayer.getLoadout(true)),
+        json.encode(xPlayer.getMeta()),
+        xPlayer.identifier,
+    }
 
     MySQL.prepare("UPDATE `users` SET `accounts` = ?, `job` = ?, `job_grade` = ?, `group` = ?, `position` = ?, `inventory` = ?, `loadout` = ?, `metadata` = ? WHERE `identifier` = ?", parameters, function(affectedRows)
         if affectedRows == 1 then
@@ -204,20 +204,20 @@ function Core.SavePlayers(cb)
     local startTime <const> = os.time()
     local parameters = {}
 
-	for _, xPlayer in pairs(ESX.Players) do
+    for _, xPlayer in pairs(ESX.Players) do
         updateHealthAndArmorInMetadata(xPlayer)
-		parameters[#parameters + 1] = {
-			json.encode(xPlayer.getAccounts(true)),
-			xPlayer.job.name,
-			xPlayer.job.grade,
-			xPlayer.group,
-			json.encode(xPlayer.getCoords()),
-			json.encode(xPlayer.getInventory(true)),
-			json.encode(xPlayer.getLoadout(true)),
-			json.encode(xPlayer.getMeta()),
-			xPlayer.identifier
-		}
-	end
+        parameters[#parameters + 1] = {
+            json.encode(xPlayer.getAccounts(true)),
+            xPlayer.job.name,
+            xPlayer.job.grade,
+            xPlayer.group,
+            json.encode(xPlayer.getCoords()),
+            json.encode(xPlayer.getInventory(true)),
+            json.encode(xPlayer.getLoadout(true)),
+            json.encode(xPlayer.getMeta()),
+            xPlayer.identifier,
+        }
+    end
 
     MySQL.prepare("UPDATE `users` SET `accounts` = ?, `job` = ?, `job_grade` = ?, `group` = ?, `position` = ?, `inventory` = ?, `loadout` = ?, `metadata` = ? WHERE `identifier` = ?", parameters, function(results)
         if not results then
@@ -248,22 +248,22 @@ local function checkTable(key, val, player, xPlayers)
 end
 
 function ESX.GetExtendedPlayers(key, val)
-	local xPlayers = {}
-	if type(val) == "table" then
-		for _, v in pairs(ESX.Players) do
-			checkTable(key, val, v, xPlayers)
-		end
-	else
-		for _, v in pairs(ESX.Players) do
-			if key then
-				if (key == 'job' and v.job.name == val) or v[key] == val then
-					xPlayers[#xPlayers + 1] = v
-				end
-			else
-				xPlayers[#xPlayers + 1] = v
-			end
-		end
-	end
+    local xPlayers = {}
+    if type(val) == "table" then
+        for _, v in pairs(ESX.Players) do
+            checkTable(key, val, v, xPlayers)
+        end
+    else
+        for _, v in pairs(ESX.Players) do
+            if key then
+                if (key == "job" and v.job.name == val) or v[key] == val then
+                    xPlayers[#xPlayers + 1] = v
+                end
+            else
+                xPlayers[#xPlayers + 1] = v
+            end
+        end
+    end
 
     return xPlayers
 end
@@ -305,12 +305,12 @@ function ESX.GetPlayerFromIdentifier(identifier)
 end
 
 function ESX.GetIdentifier(playerId, identifierType)
-	local fxDk = GetConvarInt('sv_fxdkMode', 0)
-	if fxDk == 1 then
-		return "ESX-DEBUG-LICENCE"
-	end
+    local fxDk = GetConvarInt("sv_fxdkMode", 0)
+    if fxDk == 1 then
+        return "ESX-DEBUG-LICENCE"
+    end
 
-    local identifier = GetPlayerIdentifierByType(playerId, (identifierType or 'license'))
+    local identifier = GetPlayerIdentifierByType(playerId, (identifierType or "license"))
     return identifier
 end
 
@@ -519,21 +519,21 @@ function ESX.GetUsableItems()
 end
 
 if not Config.OxInventory then
-	function ESX.CreatePickup(itemType, name, count, label, playerId, components, tintIndex, coords)
-		local pickupId = (Core.PickupId == 65635 and 0 or Core.PickupId + 1)
-		local xPlayer = ESX.Players[playerId]
-		coords = ( (type(coords) == "vector3" or type(coords) == "vector4") and coords.xyz or xPlayer.getCoords(true))
+    function ESX.CreatePickup(itemType, name, count, label, playerId, components, tintIndex, coords)
+        local pickupId = (Core.PickupId == 65635 and 0 or Core.PickupId + 1)
+        local xPlayer = ESX.Players[playerId]
+        coords = ((type(coords) == "vector3" or type(coords) == "vector4") and coords.xyz or xPlayer.getCoords(true))
 
-		Core.Pickups[pickupId] = { type = itemType, name = name, count = count, label = label, coords = coords }
+        Core.Pickups[pickupId] = { type = itemType, name = name, count = count, label = label, coords = coords }
 
-		if itemType == 'item_weapon' then
-			Core.Pickups[pickupId].components = components
-			Core.Pickups[pickupId].tintIndex = tintIndex
-		end
+        if itemType == "item_weapon" then
+            Core.Pickups[pickupId].components = components
+            Core.Pickups[pickupId].tintIndex = tintIndex
+        end
 
-		TriggerClientEvent('esx:createPickup', -1, pickupId, label, coords, itemType, name, components, tintIndex)
-		Core.PickupId = pickupId
-	end
+        TriggerClientEvent("esx:createPickup", -1, pickupId, label, coords, itemType, name, components, tintIndex)
+        Core.PickupId = pickupId
+    end
 end
 
 function ESX.DoesJobExist(job, grade)
