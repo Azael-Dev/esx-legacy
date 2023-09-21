@@ -1,6 +1,7 @@
 ESX = {}
 ESX.Players = {}
 ESX.Jobs = {}
+ESX.JobsPlayerCount = {}
 ESX.Items = {}
 Core = {}
 Core.UsableItemsCallbacks = {}
@@ -30,12 +31,13 @@ if GetResourceState("ox_inventory") ~= "missing" then
 end
 
 local function StartDBSync()
-    CreateThread(function()
-        while true do
-            Wait(10 * 60 * 1000)
-            Core.SavePlayers()
-        end
-    end)
+	CreateThread(function()
+		local interval <const> = 10 * 60 * 1000
+		while true do
+			Wait(interval)
+			Core.SavePlayers()
+		end
+	end)
 end
 
 MySQL.ready(function()

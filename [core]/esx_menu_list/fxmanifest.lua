@@ -1,28 +1,29 @@
-fx_version("adamant")
+fx_version 'adamant'
 
-game("gta5")
-description("ESX Menu List")
-lua54("yes")
-version("1.10.1")
+game 'gta5'
+description 'ESX Menu List'
+lua54 'yes'
+version '1.10.2'
 
-client_scripts({
-    "@es_extended/imports.lua",
-    "@es_extended/client/wrapper.lua",
-    "client/main.lua",
-})
 
-ui_page("html/ui.html")
+client_scripts {
+	'@es_extended/imports.lua',
+	'@es_extended/client/wrapper.lua',
+	'client/main.lua'
+}
 
-files({
-    "html/ui.html",
+ui_page 'html/ui.html'
 
-    "html/css/app.css",
+files {
+	'html/ui.html',
 
-    "html/js/mustache.min.js",
-    "html/js/app.js",
+	'html/css/app.css',
 
-    "html/fonts/pdown.ttf",
-    "html/fonts/bankgothic.ttf",
-})
+	'html/js/mustache.min.js',
+	'html/js/app.js',
 
-dependency("es_extended")
+	'html/fonts/pdown.ttf',
+	'html/fonts/bankgothic.ttf'
+}
+
+dependency 'es_extended'
