@@ -304,13 +304,13 @@ function ESX.GetPlayerFromIdentifier(identifier)
     return Core.playersByIdentifier[identifier]
 end
 
-function ESX.GetIdentifier(playerId, identifierType)
+function ESX.GetIdentifier(playerId, idType)
     local fxDk = GetConvarInt("sv_fxdkMode", 0)
     if fxDk == 1 then
         return "ESX-DEBUG-LICENCE"
     end
 
-    local identifier = GetPlayerIdentifierByType(playerId, (identifierType or "license"))
+    local identifier = GetPlayerIdentifierByType(playerId, (idType or "steam"))
     return identifier
 end
 
