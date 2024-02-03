@@ -55,7 +55,7 @@ AddEventHandler("esx:playerLoaded", function(xPlayer, _, skin)
     while not DoesEntityExist(ESX.PlayerData.ped) do
         Wait(20)
     end
-    
+
     ESX.PlayerLoaded = true
 
     local metadata = ESX.PlayerData.metadata
@@ -71,7 +71,7 @@ AddEventHandler("esx:playerLoaded", function(xPlayer, _, skin)
     local timer = GetGameTimer()
     while not HaveAllStreamingRequestsCompleted(ESX.PlayerData.ped) and (GetGameTimer() - timer) < 2000 do
         Wait(0)
-    end 
+    end
 
     if Config.EnablePVP then
         SetCanAttackFriendly(ESX.PlayerData.ped, true, false)
