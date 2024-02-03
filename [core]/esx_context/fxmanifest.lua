@@ -1,10 +1,10 @@
 fx_version("bodacious")
 
-game("gta5")
-author("ESX-Framework & Brayden")
-description("Offical ESX Legacy Context Menu")
-lua54("yes")
-version("1.10.2")
+game 'gta5'
+author 'ESX-Framework & Brayden'
+description 'Offical ESX Legacy Context Menu'
+lua54 'yes'
+version '1.10.4'
 
 ui_page("index.html")
 

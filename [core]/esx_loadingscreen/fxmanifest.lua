@@ -1,10 +1,10 @@
 game("common")
 
-version("1.10.2")
-fx_version("cerulean")
-author("ESX-Framework")
-lua54("yes")
-loadscreen("index.html")
+version '1.10.4'
+fx_version 'cerulean'
+author 'ESX-Framework'
+lua54 'yes'
+loadscreen 'index.html'
 
 shared_script("config.lua")
 

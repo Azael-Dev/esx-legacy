@@ -952,9 +952,21 @@ Config.Weapons = {
         },
     },
     -- Heavy / Launchers
-    { name = "WEAPON_COMPACTLAUNCHER", label = TranslateCap("weapon_compactlauncher"), tints = Config.DefaultWeaponTints, components = {}, ammo = { label = TranslateCap("ammo_grenadelauncher"), hash = `AMMO_GRENADELAUNCHER` } },
+    {
+        name = "WEAPON_COMPACTLAUNCHER",
+        label = TranslateCap("weapon_compactlauncher"),
+        tints = Config.DefaultWeaponTints,
+        components = {},
+        ammo = { label = TranslateCap("ammo_grenadelauncher"), hash = `AMMO_GRENADELAUNCHER` },
+    },
     { name = "WEAPON_FIREWORK", label = TranslateCap("weapon_firework"), components = {}, ammo = { label = TranslateCap("ammo_firework"), hash = `AMMO_FIREWORK` } },
-    { name = "WEAPON_GRENADELAUNCHER", label = TranslateCap("weapon_grenadelauncher"), tints = Config.DefaultWeaponTints, components = {}, ammo = { label = TranslateCap("ammo_grenadelauncher"), hash = `AMMO_GRENADELAUNCHER` } },
+    {
+        name = "WEAPON_GRENADELAUNCHER",
+        label = TranslateCap("weapon_grenadelauncher"),
+        tints = Config.DefaultWeaponTints,
+        components = {},
+        ammo = { label = TranslateCap("ammo_grenadelauncher"), hash = `AMMO_GRENADELAUNCHER` },
+    },
     { name = "WEAPON_HOMINGLAUNCHER", label = TranslateCap("weapon_hominglauncher"), tints = Config.DefaultWeaponTints, components = {}, ammo = { label = TranslateCap("ammo_rockets"), hash = `AMMO_HOMINGLAUNCHER` } },
     { name = "WEAPON_MINIGUN", label = TranslateCap("weapon_minigun"), tints = Config.DefaultWeaponTints, components = {}, ammo = { label = TranslateCap("ammo_rounds"), hash = `AMMO_MINIGUN` } },
     { name = "WEAPON_RAILGUN", label = TranslateCap("weapon_railgun"), tints = Config.DefaultWeaponTints, components = {}, ammo = { label = TranslateCap("ammo_rounds"), hash = `AMMO_RAILGUN` } },

@@ -171,6 +171,10 @@ local function updateHealthAndArmorInMetadata(xPlayer)
 end
 
 function Core.SavePlayer(xPlayer, cb)
+    if not xPlayer.spawned then
+        return cb and cb()
+    end
+
     updateHealthAndArmorInMetadata(xPlayer)
     local parameters <const> = {
         json.encode(xPlayer.getAccounts(true)),
@@ -184,15 +188,19 @@ function Core.SavePlayer(xPlayer, cb)
         xPlayer.identifier,
     }
 
-    MySQL.prepare("UPDATE `users` SET `accounts` = ?, `job` = ?, `job_grade` = ?, `group` = ?, `position` = ?, `inventory` = ?, `loadout` = ?, `metadata` = ? WHERE `identifier` = ?", parameters, function(affectedRows)
-        if affectedRows == 1 then
-            print(('[^2INFO^7] Saved player ^5"%s^7"'):format(xPlayer.name))
-            TriggerEvent("esx:playerSaved", xPlayer.playerId, xPlayer)
+    MySQL.prepare(
+        "UPDATE `users` SET `accounts` = ?, `job` = ?, `job_grade` = ?, `group` = ?, `position` = ?, `inventory` = ?, `loadout` = ?, `metadata` = ? WHERE `identifier` = ?",
+        parameters,
+        function(affectedRows)
+            if affectedRows == 1 then
+                print(('[^2INFO^7] Saved player ^5"%s^7"'):format(xPlayer.name))
+                TriggerEvent("esx:playerSaved", xPlayer.playerId, xPlayer)
+            end
+            if cb then
+                cb()
+            end
         end
-        if cb then
-            cb()
-        end
-    end)
+    )
 end
 
 function Core.SavePlayers(cb)
@@ -219,17 +227,21 @@ function Core.SavePlayers(cb)
         }
     end
 
-    MySQL.prepare("UPDATE `users` SET `accounts` = ?, `job` = ?, `job_grade` = ?, `group` = ?, `position` = ?, `inventory` = ?, `loadout` = ?, `metadata` = ? WHERE `identifier` = ?", parameters, function(results)
-        if not results then
-            return
-        end
+    MySQL.prepare(
+        "UPDATE `users` SET `accounts` = ?, `job` = ?, `job_grade` = ?, `group` = ?, `position` = ?, `inventory` = ?, `loadout` = ?, `metadata` = ? WHERE `identifier` = ?",
+        parameters,
+        function(results)
+            if not results then
+                return
+            end
 
-        if type(cb) == "function" then
-            return cb()
-        end
+            if type(cb) == "function" then
+                return cb()
+            end
 
-        print(("[^2INFO^7] Saved ^5%s^7 %s over ^5%s^7 ms"):format(#parameters, #parameters > 1 and "players" or "player", ESX.Math.Round((os.time() - startTime) / 1000000, 2)))
-    end)
+            print(("[^2INFO^7] Saved ^5%s^7 %s over ^5%s^7 ms"):format(#parameters, #parameters > 1 and "players" or "player", ESX.Math.Round((os.time() - startTime) / 1000000, 2)))
+        end
+    )
 end
 
 ESX.GetPlayers = GetPlayers
@@ -310,8 +322,7 @@ function ESX.GetIdentifier(playerId, idType)
         return "ESX-DEBUG-LICENCE"
     end
 
-    local identifier = GetPlayerIdentifierByType(playerId, (idType or "steam"))
-    return identifier
+    return GetPlayerIdentifierByType(playerId, (idType or "steam"))
 end
 
 ---@param model string|number
@@ -415,12 +426,12 @@ function ESX.CreateJob(name, label, grades)
     local job = { name = name, label = label, grades = {} }
 
     for _, v in pairs(grades) do
-        job.grades[tostring(v.grade)] = { job_name = name, grade = v.grade, name = v.name, label = v.label, salary = v.salary, skin_male = {}, skin_female = {} }
-        parameters[#parameters + 1] = { name, v.grade, v.name, v.label, v.salary }
+        job.grades[tostring(v.grade)] = { job_name = name, grade = v.grade, name = v.name, label = v.label, salary = v.salary, skin_male = v.skin_male or "{}", skin_female = v.skin_female or "{}" }
+        parameters[#parameters + 1] = { name, v.grade, v.name, v.label, v.salary, v.skin_male or "{}", v.skin_female or "{}" }
     end
 
     MySQL.insert("INSERT IGNORE INTO jobs (name, label) VALUES (?, ?)", { name, label })
-    MySQL.prepare("INSERT INTO job_grades (job_name, grade, name, label, salary) VALUES (?, ?, ?, ?, ?)", parameters)
+    MySQL.prepare("INSERT INTO job_grades (job_name, grade, name, label, salary, skin_male, skin_female) VALUES (?, ?, ?, ?, ?, ?, ?)", parameters)
 
     ESX.Jobs[name] = job
 end

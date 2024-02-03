@@ -18,51 +18,48 @@ RegisterNetEvent("esx:requestModel", function(model)
     ESX.Streaming.RequestModel(model)
 end)
 
+function ESX.SpawnPlayer(skin, coords, cb)
+    local p = promise.new()
+    TriggerEvent("skinchanger:loadSkin", skin, function()
+        p:resolve()
+    end)
+    Citizen.Await(p)
+
+    local playerPed = PlayerPedId()
+    FreezeEntityPosition(playerPed, true)
+    SetEntityCoordsNoOffset(playerPed, coords.x, coords.y, coords.z, false, false, false, true)
+    SetEntityHeading(playerPed, coords.heading)
+    while not HasCollisionLoadedAroundEntity(playerPed) do
+        Wait(0)
+    end
+    FreezeEntityPosition(playerPed, false)
+    NetworkResurrectLocalPlayer(coords.x, coords.y, coords.z, coords.heading, true, true, false)
+    cb()
+end
+
 RegisterNetEvent("esx:playerLoaded")
-AddEventHandler("esx:playerLoaded", function(xPlayer, isNew, skin)
+AddEventHandler("esx:playerLoaded", function(xPlayer, _, skin)
     ESX.PlayerData = xPlayer
 
-    if Config.Multichar then
-        Wait(3000)
-    else
-        exports.spawnmanager:spawnPlayer({
-            x = ESX.PlayerData.coords.x,
-            y = ESX.PlayerData.coords.y,
-            z = ESX.PlayerData.coords.z + 0.25,
-            heading = ESX.PlayerData.coords.heading,
-            model = `mp_m_freemode_01`,
-            skipFade = false,
-        }, function()
-            TriggerServerEvent("esx:onPlayerSpawn")
+    if not Config.Multichar then
+        ESX.SpawnPlayer(skin, ESX.PlayerData.coords, function()
             TriggerEvent("esx:onPlayerSpawn")
             TriggerEvent("esx:restoreLoadout")
-            TriggerEvent("playerSpawned") -- compatibility with old scripts
-
-            if isNew then
-                TriggerEvent("skinchanger:loadDefaultModel", skin.sex == 0)
-            elseif skin then
-                TriggerEvent("skinchanger:loadSkin", skin)
-            end
-
+            TriggerServerEvent("esx:onPlayerSpawn")
             TriggerEvent("esx:loadingScreenOff")
             ShutdownLoadingScreen()
             ShutdownLoadingScreenNui()
         end)
     end
 
-    ESX.PlayerLoaded = true
-
-    while ESX.PlayerData.ped == nil do
+    while not DoesEntityExist(ESX.PlayerData.ped) do
         Wait(20)
     end
+    
+    ESX.PlayerLoaded = true
 
-    if Config.EnablePVP then
-        SetCanAttackFriendly(ESX.PlayerData.ped, true, false)
-        NetworkSetFriendlyFireOption(true)
-    end
-
-    local playerId = PlayerId()
     local metadata = ESX.PlayerData.metadata
+
     if metadata.health then
         SetEntityHealth(ESX.PlayerData.ped, metadata.health)
     end
@@ -71,6 +68,17 @@ AddEventHandler("esx:playerLoaded", function(xPlayer, isNew, skin)
         SetPedArmour(ESX.PlayerData.ped, metadata.armor)
     end
 
+    local timer = GetGameTimer()
+    while not HaveAllStreamingRequestsCompleted(ESX.PlayerData.ped) and (GetGameTimer() - timer) < 2000 do
+        Wait(0)
+    end 
+
+    if Config.EnablePVP then
+        SetCanAttackFriendly(ESX.PlayerData.ped, true, false)
+        NetworkSetFriendlyFireOption(true)
+    end
+
+    local playerId = PlayerId()
     -- RemoveHudComponents
     for i = 1, #Config.RemoveHudComponents do
         if Config.RemoveHudComponents[i] then
@@ -194,6 +202,10 @@ AddEventHandler("esx:playerLoaded", function(xPlayer, isNew, skin)
         end
     end
 
+    if IsScreenFadedOut() then
+        DoScreenFadeIn(500)
+    end
+
     SetDefaultVehicleNumberPlateTextPattern(-1, Config.CustomAIPlates)
     StartServerSyncLoops()
 end)
@@ -314,10 +326,10 @@ if not Config.OxInventory then
 
     RegisterNetEvent("esx:removeInventoryItem")
     AddEventHandler("esx:removeInventoryItem", function(item, count, showNotification)
-        for k, v in ipairs(ESX.PlayerData.inventory) do
-            if v.name == item then
-                ESX.UI.ShowInventoryItemNotification(false, v.label, v.count - count)
-                ESX.PlayerData.inventory[k].count = count
+        for i = 1, #ESX.PlayerData.inventory do
+            if ESX.PlayerData.inventory[i].name == item then
+                ESX.UI.ShowInventoryItemNotification(false, ESX.PlayerData.inventory[i].label, ESX.PlayerData.inventory[i].count - count)
+                ESX.PlayerData.inventory[i].count = count
                 break
             end
         end
@@ -457,13 +469,11 @@ function StartServerSyncLoops()
 end
 
 if not Config.OxInventory and Config.EnableDefaultInventory then
-    RegisterCommand("showinv", function()
+    ESX.RegisterInput("showinv", TranslateCap("keymap_showinventory"), "keyboard", "F2", function()
         if not ESX.PlayerData.dead then
             ESX.ShowInventory()
         end
     end)
-
-    RegisterKeyMapping("showinv", TranslateCap("keymap_showinventory"), "keyboard", "F2")
 end
 
 -- disable wanted level

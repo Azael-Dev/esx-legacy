@@ -52,6 +52,9 @@ local function CancelProgressbar()
     if CurrentProgress.FreezePlayer then
         FreezeEntityPosition(PlayerPedId(), false)
     end
+    if CurrentProgress.onCancel then
+        CurrentProgress.onCancel()
+    end
     CurrentProgress.canceled = true
     CurrentProgress.length = 0
     CurrentProgress = nil

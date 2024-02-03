@@ -25,31 +25,18 @@ function ESX.GetPlayerData()
 end
 
 function ESX.SearchInventory(items, count)
-    if type(items) == "string" then
-        items = { items }
-    end
+    items = type(items) == "string" and { items } or items
 
-    local returnData = {}
-    local itemCount = #items
-
-    for i = 1, itemCount do
-        local itemName = items[i]
-        returnData[itemName] = count and 0
-
-        for _, item in pairs(ESX.PlayerData.inventory) do
-            if item.name == itemName then
-                if count then
-                    returnData[itemName] = returnData[itemName] + item.count
-                else
-                    returnData[itemName] = item
-                end
+    local data = {}
+    for i = 1, #items do
+        for c = 1, #ESX.PlayerData.inventory do
+            if ESX.PlayerData.inventory[c].name == items[i] then
+                data[items[i]] = (count and ESX.PlayerData.inventory[c].count) or ESX.PlayerData.inventory[c]
             end
         end
     end
 
-    if next(returnData) then
-        return itemCount == 1 and returnData[items[1]] or returnData
-    end
+    return #items == 1 and data[items[1]] or data
 end
 
 function ESX.SetPlayerData(key, val)
@@ -335,34 +322,17 @@ end
 
 function ESX.Game.SpawnObject(object, coords, cb, networked)
     networked = networked == nil and true or networked
-    if networked then
-        ESX.TriggerServerCallback("esx:Onesync:SpawnObject", function(NetworkID)
-            if cb then
-                local obj = NetworkGetEntityFromNetworkId(NetworkID)
-                local Tries = 0
-                while not DoesEntityExist(obj) do
-                    obj = NetworkGetEntityFromNetworkId(NetworkID)
-                    Wait(0)
-                    Tries = Tries + 1
-                    if Tries > 250 then
-                        break
-                    end
-                end
-                cb(obj)
-            end
-        end, object, coords, 0.0)
-    else
-        local model = type(object) == "number" and object or joaat(object)
-        local vector = type(coords) == "vector3" and coords or vec(coords.x, coords.y, coords.z)
-        CreateThread(function()
-            ESX.Streaming.RequestModel(model)
 
-            local obj = CreateObject(model, vector.xyz, networked, false, true)
-            if cb then
-                cb(obj)
-            end
-        end)
-    end
+    local model = type(object) == "number" and object or joaat(object)
+    local vector = type(coords) == "vector3" and coords or vec(coords.x, coords.y, coords.z)
+    CreateThread(function()
+        ESX.Streaming.RequestModel(model)
+
+        local obj = CreateObject(model, vector.xyz, networked, false, true)
+        if cb then
+            cb(obj)
+        end
+    end)
 end
 
 function ESX.Game.SpawnLocalObject(object, coords, cb)
@@ -388,6 +358,7 @@ function ESX.Game.SpawnVehicle(vehicleModel, coords, heading, cb, networked)
     if not vector or not playerCoords then
         return
     end
+
     local dist = #(playerCoords - vector)
     if dist > 424 then -- Onesync infinity Range (https://docs.fivem.net/docs/scripting-reference/onesync/)
         local executingResource = GetInvokingResource() or "Unknown"
@@ -436,20 +407,19 @@ function ESX.Game.GetObjects() -- Leave the function for compatibility
 end
 
 function ESX.Game.GetPeds(onlyOtherPeds)
-    local myPed, pool = ESX.PlayerData.ped, GetGamePool("CPed")
+    local pool = GetGamePool("CPed")
 
-    if not onlyOtherPeds then
-        return pool
-    end
-
-    local peds = {}
-    for i = 1, #pool do
-        if pool[i] ~= myPed then
-            peds[#peds + 1] = pool[i]
+    if onlyOtherPeds then
+        local myPed = ESX.PlayerData.ped
+        for i = 1, #pool do
+            if pool[i] == myPed then
+                table.remove(pool, i)
+                break
+            end
         end
     end
 
-    return peds
+    return pool
 end
 
 function ESX.Game.GetVehicles() -- Leave the function for compatibility
@@ -458,15 +428,17 @@ end
 
 function ESX.Game.GetPlayers(onlyOtherPlayers, returnKeyValue, returnPeds)
     local players, myPlayer = {}, PlayerId()
+    local active = GetActivePlayers()
 
-    for _, player in ipairs(GetActivePlayers()) do
-        local ped = GetPlayerPed(player)
+    for i = 1, #active do
+        local currentPlayer = active[i]
+        local ped = GetPlayerPed(currentPlayer)
 
-        if DoesEntityExist(ped) and ((onlyOtherPlayers and player ~= myPlayer) or not onlyOtherPlayers) then
+        if DoesEntityExist(ped) and ((onlyOtherPlayers and currentPlayer ~= myPlayer) or not onlyOtherPlayers) then
             if returnKeyValue then
-                players[player] = ped
+                players[currentPlayer] = ped
             else
-                players[#players + 1] = returnPeds and ped or player
+                players[#players + 1] = returnPeds and ped or currentPlayer
             end
         end
     end
@@ -990,12 +962,8 @@ function ESX.Game.Utils.DrawText3D(coords, text, size, font)
     local camCoords = GetFinalRenderedCamCoord()
     local distance = #(vector - camCoords)
 
-    if not size then
-        size = 1
-    end
-    if not font then
-        font = 0
-    end
+    size = size or 1
+    font = font or 0
 
     local scale = (size / distance) * 2
     local fov = (1 / GetGameplayCamFov()) * 100
@@ -1053,7 +1021,8 @@ function ESX.ShowInventory()
         end
     end
 
-    for _, v in ipairs(ESX.PlayerData.inventory) do
+    for i = 1, #ESX.PlayerData.inventory do
+        local v = ESX.PlayerData.inventory[i]
         if v.count > 0 then
             currentWeight = currentWeight + (v.weight * v.count)
 
