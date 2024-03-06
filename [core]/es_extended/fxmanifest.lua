@@ -1,9 +1,9 @@
 fx_version("cerulean")
 
-game("gta5")
-description("ES Extended")
-lua54("yes")
-version("1.10.4")
+game 'gta5'
+description 'ES Extended'
+lua54 'yes'
+version '1.10.5'
 
 shared_scripts({
     "locale.lua",

@@ -1,9 +1,9 @@
 fx_version("adamant")
 
-game("gta5")
-description("ESX Skin")
-version("1.10.4")
-lua54("yes")
+game 'gta5'
+description 'ESX Skin'
+version '1.10.5'
+lua54 'yes'
 
 shared_script("@es_extended/imports.lua")
 
