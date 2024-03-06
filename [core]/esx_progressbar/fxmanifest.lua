@@ -1,10 +1,10 @@
 fx_version("adamant")
 
-game 'gta5'
-author 'ESX-Framework'
-lua54 'yes'
-version '1.10.5'
-description 'ESX Progressbar'
+game("gta5")
+author("ESX-Framework")
+lua54("yes")
+version("1.10.5")
+description("ESX Progressbar")
 
 client_scripts({ "Progress.lua" })
 shared_script("@es_extended/imports.lua")
