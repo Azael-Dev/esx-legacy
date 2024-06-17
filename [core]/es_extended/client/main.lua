@@ -270,29 +270,13 @@ AddEventHandler("esx:restoreLoadout", function()
     end
 end)
 
--- Credit: https://github.com/LukeWasTakenn, https://github.com/LukeWasTakenn/luke_garages/blob/master/client/client.lua#L331-L352
 AddStateBagChangeHandler("VehicleProperties", nil, function(bagName, _, value)
     if not value then
         return
     end
 
     local netId = bagName:gsub("entity:", "")
-    local timer = GetGameTimer()
-    while not NetworkDoesEntityExistWithNetworkId(tonumber(netId)) do
-        Wait(0)
-        if GetGameTimer() - timer > 10000 then
-            return
-        end
-    end
-
     local vehicle = NetToVeh(tonumber(netId))
-    local timer2 = GetGameTimer()
-    while NetworkGetEntityOwner(vehicle) ~= PlayerId() do
-        Wait(0)
-        if GetGameTimer() - timer2 > 10000 then
-            return
-        end
-    end
 
     ESX.Game.SetVehicleProperties(vehicle, value)
 end)
@@ -375,6 +359,11 @@ end
 RegisterNetEvent("esx:setJob")
 AddEventHandler("esx:setJob", function(Job)
     ESX.SetPlayerData("job", Job)
+end)
+
+RegisterNetEvent("esx:setGroup")
+AddEventHandler("esx:setGroup", function(group)
+    ESX.SetPlayerData("group", group)
 end)
 
 if not Config.OxInventory then

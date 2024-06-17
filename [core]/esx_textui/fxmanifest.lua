@@ -1,10 +1,10 @@
 fx_version("adamant")
 
-game("gta5")
-author("ESX-Framework")
-version("1.10.5")
-description("ESX TextUI")
-lua54("yes")
+game 'gta5'
+author 'ESX-Framework'
+description 'A beautiful and simple Persistent Notification system for ESX.'
+version '1.10.6'
+lua54 'yes'
 
 client_scripts({ "TextUI.lua" })
 shared_script("@es_extended/imports.lua")

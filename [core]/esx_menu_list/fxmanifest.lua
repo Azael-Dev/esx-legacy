@@ -1,9 +1,9 @@
 fx_version("adamant")
 
-game("gta5")
-description("ESX Menu List")
-lua54("yes")
-version("1.10.5")
+game 'gta5'
+description 'A basic table-based menu system for ESX Legacy.'
+lua54 'yes'
+version '1.10.6'
 
 client_scripts({
     "@es_extended/imports.lua",
