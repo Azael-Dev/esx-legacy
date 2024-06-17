@@ -97,7 +97,7 @@ CreateThread(function()
                 TriggerServerEvent("esx:exitedVehicle", current.plate, current.seat, current.displayName, current.netId)
                 isInVehicle = false
                 current = {}
-                ToggleVehicleStatus(false,false)
+                ToggleVehicleStatus(false, false)
             end
         end
         Wait(200)
