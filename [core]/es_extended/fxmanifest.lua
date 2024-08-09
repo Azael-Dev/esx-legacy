@@ -1,9 +1,9 @@
 fx_version("cerulean")
 
-game("gta5")
-description("The Core resource that provides the functionalities for all other resources.")
-lua54("yes")
-version("1.10.6")
+game 'gta5'
+description 'The Core resource that provides the functionalities for all other resources.'
+lua54 'yes'
+version '1.10.7'
 
 shared_scripts({
     "locale.lua",
@@ -45,12 +45,11 @@ client_scripts({
     "common/modules/*.lua",
     "common/functions.lua",
 
-    "common/functions.lua",
-    "client/modules/actions.lua",
-    "client/modules/death.lua",
-    "client/modules/npwd.lua",
-    "client/modules/scaleform.lua",
-    "client/modules/streaming.lua",
+	'client/modules/actions.lua',
+	'client/modules/death.lua',
+	'client/modules/npwd.lua',
+	'client/modules/scaleform.lua',
+	'client/modules/streaming.lua',
 })
 
 ui_page({
