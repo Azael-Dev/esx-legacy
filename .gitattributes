@@ -1,0 +1,2 @@
+# Instruct Git to use the "ours" merge strategy for the [core]/esx_multicharacter folder
+[core]/esx_multicharacter/ merge=ours
