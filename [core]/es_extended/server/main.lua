@@ -129,6 +129,7 @@ function loadESXPlayer(identifier, playerId, isNew)
         inventory = {},
         loadout = {},
         weight = 0,
+        name = GetPlayerName(playerId),
         identifier = identifier,
         firstName = "John",
         lastName = "Doe",
@@ -257,9 +258,12 @@ function loadESXPlayer(identifier, playerId, isNew)
         userData.firstName = result.firstname
         userData.lastName = result.lastname
 
+        local name = ("%s %s"):format(result.firstname, result.lastname)
+        userData.name = name
+
         xPlayer.set("firstName", result.firstname)
         xPlayer.set("lastName", result.lastname)
-        xPlayer.setName(("%s %s"):format(result.firstname, result.lastname))
+        xPlayer.setName(name)
 
         if result.dateofbirth then
             userData.dateofbirth = result.dateofbirth
@@ -302,7 +306,7 @@ end
 
 AddEventHandler("chatMessage", function(playerId, _, message)
     local xPlayer = ESX.GetPlayerFromId(playerId)
-    if message:sub(1, 1) == "/" and playerId > 0 then
+    if xPlayer and message:sub(1, 1) == "/" and playerId > 0 then
         CancelEvent()
         local commandName = message:sub(1):gmatch("%w+")()
         xPlayer.showNotification(TranslateCap("commanderror_invalidcommand", commandName))
@@ -685,13 +689,13 @@ AddEventHandler("onResourceStart", function(key)
         end
 
         StopResource(key)
-        print(("[^1ERROR^7] WE STOPPED A RESOURCE THAT WILL BREAK ^1ESX^7, PLEASE REMOVE ^5%s^7"):format(key))
+        error(("WE STOPPED A RESOURCE THAT WILL BREAK ^1ESX^7, PLEASE REMOVE ^5%s^7"):format(key))
     end
 end)
 
 for key in pairs(DoNotUse) do
     if GetResourceState(key) == "started" or GetResourceState(key) == "starting" then
         StopResource(key)
-        print(("[^1ERROR^7] WE STOPPED A RESOURCE THAT WILL BREAK ^1ESX^7, PLEASE REMOVE ^5%s^7"):format(key))
+        error(("WE STOPPED A RESOURCE THAT WILL BREAK ^1ESX^7, PLEASE REMOVE ^5%s^7"):format(key))
     end
 end
