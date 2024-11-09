@@ -3,13 +3,13 @@ fx_version("adamant")
 game 'gta5'
 description 'A basic input dialog for ESX Legacy.'
 lua54 'yes'
-version '1.10.10'
+version '1.11.1'
 
-client_scripts({
-    "@es_extended/imports.lua",
-    "@es_extended/client/wrapper.lua",
-    "client/main.lua",
-})
+client_scripts {
+	'@es_extended/imports.lua',
+	'@es_extended/client/modules/wrapper.lua',
+	'client/main.lua'
+}
 
 ui_page("html/ui.html")
 
