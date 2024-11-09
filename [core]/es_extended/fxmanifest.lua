@@ -1,13 +1,13 @@
-fx_version("cerulean")
+fx_version 'cerulean'
 
 game 'gta5'
 description 'The Core resource that provides the functionalities for all other resources.'
 lua54 'yes'
 version '1.11.1'
 
-shared_scripts({
-    "locale.lua",
-    "locales/*.lua",
+shared_scripts {
+	'locale.lua',
+	'locales/*.lua',
 
 	'shared/config/main.lua',
     'shared/config/weapons.lua',
@@ -46,7 +46,7 @@ client_scripts {
 	'client/modules/callback.lua',
     'client/modules/adjustments.lua',
 
-    "client/main.lua",
+	'client/main.lua',
 
 	'client/modules/actions.lua',
 	'client/modules/death.lua',
@@ -54,26 +54,26 @@ client_scripts {
     'client/modules/interactions.lua',
 	'client/modules/scaleform.lua',
 	'client/modules/streaming.lua',
-})
+}
 
-ui_page({
-    "html/ui.html",
-})
+ui_page {
+	'html/ui.html'
+}
 
-files({
-    "imports.lua",
-    "locale.js",
-    "html/ui.html",
+files {
+	'imports.lua',
+	'locale.js',
+	'html/ui.html',
 
-    "html/css/app.css",
+	'html/css/app.css',
 
-    "html/js/mustache.min.js",
-    "html/js/wrapper.js",
-    "html/js/app.js",
+	'html/js/mustache.min.js',
+	'html/js/wrapper.js',
+	'html/js/app.js',
 
-    "html/fonts/pdown.ttf",
-    "html/fonts/bankgothic.ttf",
-})
+	'html/fonts/pdown.ttf',
+	'html/fonts/bankgothic.ttf',
+}
 
 dependencies {
 	'/native:0x6AE51D4B',
