@@ -556,7 +556,7 @@ end
 
 ---@return table
 function ESX.GetItems()
-    return Core.Items
+    return ESX.Items
 end
 
 ---@return table
